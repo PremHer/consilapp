@@ -21,7 +21,8 @@ interface StoreState {
   updateExpedienteStatus: (id: string, nuevoEstado: Expediente['estado']) => Promise<void>;
 }
 
-const API_URL = 'http://localhost:3000/api';
+// Usar la URL de producción si existe, sino localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const useStore = create<StoreState>((set) => ({
   expedientes: [],
