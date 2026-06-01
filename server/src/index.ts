@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
+import { connectToWhatsApp, sendWhatsAppMessage } from './services/whatsapp';
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ app.get('/api/expedientes', async (req, res) => {
 // Crear un nuevo expediente
 app.post('/api/expedientes', async (req, res) => {
   try {
-    const { materia, solicitanteNom, solicitanteDni, invitadoNom, invitadoDni } = req.body;
+    const { materia, solicitanteNom, solicitanteDni, invitadoNom, invitadoDni, invitadoCelular } = req.body;
     
     // Generar un número de expediente tipo #2024-XXX
     const count = await prisma.expediente.count();
@@ -41,6 +42,7 @@ app.post('/api/expedientes', async (req, res) => {
         solicitanteDni,
         invitadoNom,
         invitadoDni,
+        invitadoCelular,
         estado: 'RECIBIDO',
         urgency: 'NORMAL'
       }
@@ -62,6 +64,13 @@ app.put('/api/expedientes/:id/estado', async (req, res) => {
       where: { id },
       data: { estado }
     });
+    
+    // Si el estado pasa a INVITACIONES y hay celular, notificar
+    if (estado === 'INVITACIONES' && expediente.invitadoCelular) {
+      const msj = `🏛️ *Centro de Conciliación*\nHola ${expediente.invitadoNom}, se le ha generado una invitación a conciliar solicitada por ${expediente.solicitanteNom} sobre la materia de *${expediente.materia}*.\n\nPor favor, contacte con nosotros para coordinar la audiencia. Expediente: ${expediente.numero}`;
+      await sendWhatsAppMessage(expediente.invitadoCelular, msj);
+    }
+
     res.json(expediente);
   } catch (error) {
     console.error(error);
@@ -71,5 +80,6 @@ app.put('/api/expedientes/:id/estado', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor de Conciliación corriendo en el puerto ${PORT}`);
+  console.log(`🚀 Servidor de Conciliación corriendo en el puerto ${PORT}`);
+  connectToWhatsApp(); // Iniciar bot
 });

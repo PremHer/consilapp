@@ -8,6 +8,7 @@ export interface Expediente {
   solicitanteDni: string;
   invitadoNom: string;
   invitadoDni: string;
+  invitadoCelular?: string;
   estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA';
   urgency?: 'NORMAL' | 'URGENTE';
 }

@@ -25,4 +25,5 @@ model Expediente {
   solicitanteNom String
   invitadoDni    String
   invitadoNom    String
+  invitadoCelular String? // Para enviar la notificación por WhatsApp
 }

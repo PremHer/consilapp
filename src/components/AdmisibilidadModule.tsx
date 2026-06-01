@@ -15,6 +15,7 @@ const AdmisibilidadModule = () => {
   const [dniSolicitante, setDniSolicitante] = useState('');
   const [contraparte, setContraparte] = useState('');
   const [dniContraparte, setDniContraparte] = useState('');
+  const [celularInvitado, setCelularInvitado] = useState('');
   const [materia, setMateria] = useState(materiaPreseleccionada);
   
   const [files, setFiles] = useState<{ dni: File | null, voucher: File | null, pruebas: File[] }>({
@@ -43,7 +44,8 @@ const AdmisibilidadModule = () => {
       solicitanteNom: nombres,
       solicitanteDni: dniSolicitante,
       invitadoNom: contraparte,
-      invitadoDni: dniContraparte
+      invitadoDni: dniContraparte,
+      invitadoCelular: celularInvitado || null
     });
     
     setIsSubmitted(true);
@@ -105,6 +107,12 @@ const AdmisibilidadModule = () => {
               <label className="block text-label-lg font-bold text-on-surface mb-xs">Nombres de la Contraparte</label>
               <input type="text" value={contraparte} onChange={e => setContraparte(e.target.value)} placeholder="Ej. Empresa ABC S.A.C" className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg focus:border-primary focus:outline-none" required />
             </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">Celular del Invitado (WhatsApp)</label>
+              <input type="text" maxLength={15} value={celularInvitado} onChange={e => setCelularInvitado(e.target.value.replace(/\D/g,''))} placeholder="Ej. 987654321" className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg focus:border-primary focus:outline-none" required />
+              <p className="text-label-sm text-on-surface-variant mt-xs">A este número se enviarán las notificaciones de audiencias.</p>
+            </div>
           </div>
         </div>
 
@@ -156,7 +164,7 @@ const AdmisibilidadModule = () => {
           <button type="button" onClick={() => navigate('/')} className="px-lg py-sm rounded-lg font-label-lg text-on-surface border border-outline-variant hover:bg-surface-container transition-colors">
             Cancelar
           </button>
-          <button type="submit" disabled={!nombres || !contraparte || !dniSolicitante || !dniContraparte} className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md flex items-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed">
+          <button type="submit" disabled={!nombres || !contraparte || !dniSolicitante || !dniContraparte || !celularInvitado} className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md flex items-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed">
             Enviar Solicitud <ArrowRight size={16} />
           </button>
         </div>
