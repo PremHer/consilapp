@@ -11,6 +11,7 @@ export interface Expediente {
   invitadoCelular?: string;
   estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA';
   urgency?: 'NORMAL' | 'URGENTE';
+  createdAt: string;
 }
 
 interface StoreState {

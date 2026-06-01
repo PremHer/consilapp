@@ -75,16 +75,16 @@ const DashboardModule = () => {
                     <span className="text-label-sm text-primary font-bold">{exp.id}</span>
                     <span className="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span>
                   </div>
-                  <h4 className="font-label-lg mb-xs">{exp.solicitante}</h4>
+                  <h4 className="font-label-lg mb-xs">{exp.solicitanteNom}</h4>
                   <div className="flex gap-xs mb-md">
                     <span className="bg-surface-container-high px-sm py-xs rounded text-[10px] font-bold text-on-tertiary-fixed-variant">{exp.materia}</span>
                   </div>
                   <div className="flex items-center justify-between mt-lg">
                     <div className="flex items-center gap-xs text-on-surface-variant">
                       <span className="material-symbols-outlined text-[16px]">schedule</span>
-                      <span className="text-label-sm">{exp.time}</span>
+                      <span className="text-label-sm">{new Date(exp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-[10px] font-bold text-on-primary-fixed">{exp.initial}</div>
+                    <div className="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-[10px] font-bold text-on-primary-fixed">{exp.solicitanteNom?.substring(0, 2).toUpperCase() || 'AI'}</div>
                   </div>
                 </motion.div>
               ))}
@@ -104,20 +104,16 @@ const DashboardModule = () => {
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
               {expedientes.filter(e => e.estado === 'CALIFICADO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                  className={`bg-surface-container-lowest p-md border-l-4 ${exp.urgency === 'URGENTE' ? 'border-l-primary' : 'border-l-secondary'} border-t border-r border-b border-outline-variant rounded-lg shadow-sm hover:shadow-md transition-all`}>
+                  className={`bg-surface-container-lowest p-md border-l-4 border-l-secondary border-t border-r border-b border-outline-variant rounded-lg shadow-sm hover:shadow-md transition-all`}>
                   <div className="flex justify-between items-start mb-sm">
-                    <span className="text-label-sm text-primary font-bold">{exp.id}</span>
-                    {exp.urgency === 'URGENTE' ? (
-                      <span className="flex items-center gap-xs bg-error-container text-error px-sm py-xs rounded text-[10px] font-bold">URGENTE</span>
-                    ) : (
-                      <span className="flex items-center gap-xs bg-secondary-container text-on-secondary-fixed px-sm py-xs rounded text-[10px] font-bold">NORMAL</span>
-                    )}
+                    <span className="text-label-sm text-primary font-bold">{exp.id.substring(0, 8)}</span>
+                    <span className="flex items-center gap-xs bg-secondary-container text-on-secondary-fixed px-sm py-xs rounded text-[10px] font-bold">NORMAL</span>
                   </div>
-                  <h4 className="font-label-lg mb-xs">{exp.solicitante}</h4>
+                  <h4 className="font-label-lg mb-xs">{exp.solicitanteNom}</h4>
                   <p className="text-label-sm text-on-surface-variant mb-md">Materia: {exp.materia}</p>
                   <div className="flex items-center gap-sm pt-sm border-t border-outline-variant">
                     <div className="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant text-[10px] font-bold">DR</div>
-                    <span className="text-label-sm">Asignado: {exp.initial}</span>
+                    <span className="text-label-sm">Asignado: {exp.solicitanteNom?.substring(0, 2).toUpperCase() || 'AI'}</span>
                   </div>
                 </motion.div>
               ))}
@@ -139,16 +135,16 @@ const DashboardModule = () => {
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm">
                   <div className="flex justify-between items-start mb-sm">
-                    <span className="text-label-sm text-primary font-bold">{exp.id}</span>
-                    <span className="text-label-sm text-on-surface-variant">{exp.solicitante}</span>
+                    <span className="text-label-sm text-primary font-bold">{exp.id.substring(0, 8)}</span>
+                    <span className="text-label-sm text-on-surface-variant">{exp.solicitanteNom}</span>
                   </div>
                   <h4 className="font-label-lg mb-md">{exp.materia}</h4>
                   <div className="w-full bg-surface-container-high rounded-full h-1.5 mb-sm overflow-hidden">
-                    <div className={`h-full ${exp.progress === 100 ? 'bg-primary' : 'bg-secondary'}`} style={{ width: `${exp.progress}%` }}></div>
+                    <div className={`h-full bg-secondary`} style={{ width: `50%` }}></div>
                   </div>
                   <div className="flex items-center gap-xs text-[10px] text-on-surface-variant">
-                    <span className={`material-symbols-outlined text-[14px] ${exp.color}`}>{exp.icon}</span>
-                    <span>{exp.statusText}</span>
+                    <span className={`material-symbols-outlined text-[14px] text-primary`}>schedule</span>
+                    <span>En espera</span>
                   </div>
                 </motion.div>
               ))}
@@ -171,7 +167,7 @@ const DashboardModule = () => {
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm ring-1 ring-primary/5">
                   <div className="flex justify-between items-start mb-sm">
                     <span className="font-label-md text-primary bg-primary-container px-sm py-xs rounded-md">
-                      {exp.numero}
+                      {exp.id.substring(0, 8)}
                     </span>
                     <span className="text-label-sm text-on-surface-variant flex items-center gap-xs">
                       <span className="material-symbols-outlined text-[16px]">schedule</span> Reciente

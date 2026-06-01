@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { UploadCloud, FileCheck, CheckCircle, ArrowRight, X } from 'lucide-react';
-import { useStore, type Expediente } from '../store/useStore';
+import { UploadCloud, FileCheck, CheckCircle, ArrowRight } from 'lucide-react';
+import { useStore } from '../store/useStore';
 
 const AdmisibilidadModule = () => {
   const location = useLocation();
@@ -45,7 +45,7 @@ const AdmisibilidadModule = () => {
       solicitanteDni: dniSolicitante,
       invitadoNom: contraparte,
       invitadoDni: dniContraparte,
-      invitadoCelular: celularInvitado || null
+      invitadoCelular: celularInvitado || undefined
     });
     
     setIsSubmitted(true);
