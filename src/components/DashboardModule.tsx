@@ -54,10 +54,10 @@ const DashboardModule = () => {
         </div>
 
         {/* Kanban Board */}
-        <div className="flex gap-gutter overflow-x-auto pb-lg min-w-[1200px]">
+        <div className="flex gap-md md:gap-gutter overflow-x-auto pb-lg snap-x snap-mandatory hide-scrollbar w-full">
           
           {/* Column 1: RECIBIDO */}
-          <div className="flex-1 min-w-[300px]">
+          <div className="flex-1 min-w-[85vw] sm:min-w-[300px] snap-center">
             <div className="flex items-center justify-between mb-md px-xs">
               <div className="flex items-center gap-sm">
                 <span className="font-label-lg text-on-surface">RECIBIDO</span>
@@ -92,7 +92,7 @@ const DashboardModule = () => {
           </div>
 
           {/* Column 2: CALIFICADO */}
-          <div className="flex-1 min-w-[300px]">
+          <div className="flex-1 min-w-[85vw] sm:min-w-[300px] snap-center">
             <div className="flex items-center justify-between mb-md px-xs">
               <div className="flex items-center gap-sm">
                 <span className="font-label-lg text-on-surface">CALIFICADO</span>
@@ -121,7 +121,7 @@ const DashboardModule = () => {
           </div>
 
           {/* Column 3: INVITACIONES */}
-          <div className="flex-1 min-w-[300px]">
+          <div className="flex-1 min-w-[85vw] sm:min-w-[300px] snap-center">
             <div className="flex items-center justify-between mb-md px-xs">
               <div className="flex items-center gap-sm">
                 <span className="font-label-lg text-on-surface">INVITACIONES</span>
@@ -152,7 +152,7 @@ const DashboardModule = () => {
           </div>
 
           {/* Column 4: AUDIENCIA */}
-          <div className="flex-1 min-w-[300px]">
+          <div className="flex-1 min-w-[85vw] sm:min-w-[300px] snap-center">
             <div className="flex items-center justify-between mb-md px-xs">
               <div className="flex items-center gap-sm">
                 <span className="font-label-lg text-on-surface">AUDIENCIA</span>
