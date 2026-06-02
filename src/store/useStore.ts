@@ -13,7 +13,7 @@ export interface Expediente {
   estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA';
   urgency?: 'NORMAL' | 'URGENTE';
   fechaAudiencia?: string;
-  createdAt: string;
+  fechaCreacion: string;
 }
 
 interface StoreState {

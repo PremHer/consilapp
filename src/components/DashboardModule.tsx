@@ -75,7 +75,7 @@ const DashboardModule = () => {
                   onClick={() => setSelectedExp(exp)}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm hover:border-primary transition-all cursor-grab active:cursor-grabbing group">
                   <div className="flex justify-between items-start mb-sm">
-                    <span className="text-label-sm text-primary font-bold">{exp.id}</span>
+                    <span className="text-label-sm text-primary font-bold">{exp.numero || exp.id.substring(0,8)}</span>
                     <span className="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span>
                   </div>
                   <h4 className="font-label-lg mb-xs">{exp.solicitanteNom}</h4>
@@ -85,7 +85,7 @@ const DashboardModule = () => {
                   <div className="flex items-center justify-between mt-lg">
                     <div className="flex items-center gap-xs text-on-surface-variant">
                       <span className="material-symbols-outlined text-[16px]">schedule</span>
-                      <span className="text-label-sm">{new Date(exp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="text-label-sm">{new Date(exp.fechaCreacion).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     <button 
                       onClick={(e) => { e.stopPropagation(); updateExpedienteStatus(exp.id, 'CALIFICADO'); }}
@@ -115,7 +115,7 @@ const DashboardModule = () => {
                   onClick={() => setSelectedExp(exp)}
                   className={`bg-surface-container-lowest p-md border-l-4 border-l-secondary border-t border-r border-b border-outline-variant rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer`}>
                   <div className="flex justify-between items-start mb-sm">
-                    <span className="text-label-sm text-primary font-bold">{exp.id.substring(0, 8)}</span>
+                    <span className="text-label-sm text-primary font-bold">{exp.numero || exp.id.substring(0, 8)}</span>
                     <span className="flex items-center gap-xs bg-secondary-container text-on-secondary-fixed px-sm py-xs rounded text-[10px] font-bold">NORMAL</span>
                   </div>
                   <h4 className="font-label-lg mb-xs">{exp.solicitanteNom}</h4>
@@ -153,7 +153,7 @@ const DashboardModule = () => {
                   onClick={() => setSelectedExp(exp)}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm hover:border-primary transition-all cursor-pointer">
                   <div className="flex justify-between items-start mb-sm">
-                    <span className="text-label-sm text-primary font-bold">{exp.id.substring(0, 8)}</span>
+                    <span className="text-label-sm text-primary font-bold">{exp.numero || exp.id.substring(0, 8)}</span>
                     <span className="text-label-sm text-on-surface-variant">{exp.solicitanteNom}</span>
                   </div>
                   <h4 className="font-label-lg mb-md">{exp.materia}</h4>
@@ -194,7 +194,7 @@ const DashboardModule = () => {
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm ring-1 ring-primary/5 hover:border-primary transition-all cursor-pointer">
                   <div className="flex justify-between items-start mb-sm">
                     <span className="font-label-md text-on-surface-variant bg-surface-container-highest px-sm py-xs rounded-md border border-outline-variant">
-                      {exp.id.substring(0, 8)}
+                      {exp.numero || exp.id.substring(0, 8)}
                     </span>
                     <span className="text-label-sm text-on-surface-variant flex items-center gap-xs">
                       <span className="material-symbols-outlined text-[16px]">schedule</span> Reciente
@@ -247,8 +247,8 @@ const DashboardModule = () => {
             <div className="p-lg space-y-md">
               <div className="grid grid-cols-2 gap-md">
                 <div className="bg-surface-container-lowest p-sm rounded-lg border border-outline-variant/50">
-                  <p className="text-label-sm text-on-surface-variant mb-xs">Identificador</p>
-                  <p className="font-label-md text-primary">{selectedExp.id}</p>
+                  <p className="text-label-sm text-on-surface-variant mb-xs">N° Expediente</p>
+                  <p className="font-label-md text-primary">{selectedExp.numero || selectedExp.id}</p>
                 </div>
                 <div className="bg-surface-container-lowest p-sm rounded-lg border border-outline-variant/50">
                   <p className="text-label-sm text-on-surface-variant mb-xs">Materia</p>
