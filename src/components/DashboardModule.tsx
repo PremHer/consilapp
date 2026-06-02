@@ -188,7 +188,7 @@ const DashboardModule = () => {
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm ring-1 ring-primary/5">
                   <div className="flex justify-between items-start mb-sm">
-                    <span className="font-label-md text-primary bg-primary-container px-sm py-xs rounded-md">
+                    <span className="font-label-md text-on-surface-variant bg-surface-container-highest px-sm py-xs rounded-md border border-outline-variant">
                       {exp.id.substring(0, 8)}
                     </span>
                     <span className="text-label-sm text-on-surface-variant flex items-center gap-xs">
