@@ -141,9 +141,9 @@ app.post('/api/chat', async (req, res) => {
     const response = result.response.text();
     
     res.json({ response });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error en AI Chat:", error);
-    res.status(500).json({ error: 'Error procesando el chat' });
+    res.status(500).json({ error: error?.message || 'Error procesando el chat' });
   }
 });
 

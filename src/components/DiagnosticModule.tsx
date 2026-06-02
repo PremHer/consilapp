@@ -24,7 +24,12 @@ const DiagnosticModule = () => {
         body: JSON.stringify({ history: [], message: nlpText })
       });
       const data = await res.json();
-      setAiResponse(data.response);
+      
+      if (!res.ok) {
+        setAiResponse(`❌ Error del servidor de Inteligencia Artificial: ${data.error || 'Verifica la API KEY de Gemini'}`);
+      } else {
+        setAiResponse(data.response || "No se recibió respuesta de la IA.");
+      }
       
       if (nlpText.toLowerCase().includes('hijo') || nlpText.toLowerCase().includes('alimento') || nlpText.toLowerCase().includes('espos')) {
         setDetectedBranch('Familia');
