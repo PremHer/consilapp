@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import makeWASocket, { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, Browsers } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import qrcode from 'qrcode-terminal';
 import pino from 'pino';
@@ -9,12 +9,14 @@ let isConnected = false;
 
 export async function connectToWhatsApp() {
   const { state, saveCreds } = await useMultiFileAuthState('baileys_auth_info');
+  const { version } = await fetchLatestBaileysVersion();
   
   sock = makeWASocket({
+    version,
     auth: state,
     printQRInTerminal: false,
     logger: pino({ level: 'error' }),
-    browser: ['ConsilApp', 'Chrome', '10.0.0']
+    browser: Browsers.macOS('Desktop')
   });
 
   sock.ev.on('connection.update', (update) => {
