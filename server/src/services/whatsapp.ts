@@ -13,7 +13,7 @@ export async function connectToWhatsApp() {
   sock = makeWASocket({
     auth: state,
     printQRInTerminal: false,
-    logger: pino({ level: 'silent' }),
+    logger: pino({ level: 'error' }),
     browser: ['ConsilApp', 'Chrome', '10.0.0']
   });
 
@@ -26,8 +26,10 @@ export async function connectToWhatsApp() {
     }
 
     if (connection === 'close') {
-      const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
-      console.log('Conexión cerrada. Intentando reconectar:', shouldReconnect);
+      const error = lastDisconnect?.error as Boom;
+      const statusCode = error?.output?.statusCode;
+      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+      console.error('⚠️ Conexión cerrada. Código de error:', statusCode, 'Mensaje:', error?.message);
       isConnected = false;
       if (shouldReconnect) {
         setTimeout(connectToWhatsApp, 5000);
