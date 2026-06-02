@@ -125,7 +125,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     // System prompt para actuar como experto en conciliación peruana
     const systemInstruction = "Eres un asistente virtual experto en Conciliación Extrajudicial en Perú. Tu objetivo es ayudar a los ciudadanos a saber si su problema se puede resolver por conciliación (pensión de alimentos, régimen de visitas, desalojo, pago de deudas). Sé conciso, amigable y profesional. Si el tema es conciliable, anímalo a usar el formulario para enviar su solicitud.";
