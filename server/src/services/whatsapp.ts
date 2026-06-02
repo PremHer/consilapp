@@ -12,8 +12,9 @@ export async function connectToWhatsApp() {
   
   sock = makeWASocket({
     auth: state,
-    printQRInTerminal: false, // Desactivado por defecto de baileys porque usaremos qrcode-terminal
-    logger: pino({ level: 'silent' }) // Silenciamos logs excesivos
+    printQRInTerminal: false,
+    logger: pino({ level: 'silent' }),
+    browser: ['ConsilApp', 'Chrome', '10.0.0']
   });
 
   sock.ev.on('connection.update', (update) => {
@@ -29,7 +30,7 @@ export async function connectToWhatsApp() {
       console.log('Conexión cerrada. Intentando reconectar:', shouldReconnect);
       isConnected = false;
       if (shouldReconnect) {
-        connectToWhatsApp();
+        setTimeout(connectToWhatsApp, 5000);
       }
     } else if (connection === 'open') {
       console.log('✅ Bot de WhatsApp conectado y listo para enviar invitaciones.');
