@@ -23,7 +23,10 @@ export async function connectToWhatsApp() {
     const { connection, lastDisconnect, qr } = update;
     
     if (qr) {
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qr)}`;
       console.log('🤖 Escanea este código QR con tu WhatsApp para vincular el bot de conciliación:');
+      console.log('🔗 HAZ CLIC AQUÍ PARA VER EL QR: ' + qrUrl);
+      // Opcional: seguir imprimiendo el de terminal por si acaso
       qrcode.generate(qr, { small: true });
     }
 
