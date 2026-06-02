@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { io } from 'socket.io-client';
 
 export interface Expediente {
   id: string;
@@ -11,6 +12,7 @@ export interface Expediente {
   invitadoCelular?: string;
   estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA';
   urgency?: 'NORMAL' | 'URGENTE';
+  fechaAudiencia?: string;
   createdAt: string;
 }
 
@@ -20,6 +22,7 @@ interface StoreState {
   fetchExpedientes: () => Promise<void>;
   addExpediente: (expediente: Partial<Expediente>) => Promise<void>;
   updateExpedienteStatus: (id: string, nuevoEstado: Expediente['estado']) => Promise<void>;
+  agendarAudiencia: (id: string, fechaAudiencia: string) => Promise<void>;
 }
 
 // Usar la URL de producción si existe, sino localhost
@@ -77,5 +80,44 @@ export const useStore = create<StoreState>((set) => ({
     } catch (error) {
       console.error("Error updating status:", error);
     }
+  },
+
+  agendarAudiencia: async (id, fechaAudiencia) => {
+    try {
+      const response = await fetch(`${API_URL}/expedientes/${id}/audiencia`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fechaAudiencia })
+      });
+      if (response.ok) {
+        set((state) => ({
+          expedientes: state.expedientes.map(exp => 
+            exp.id === id ? { ...exp, fechaAudiencia } : exp
+          )
+        }));
+      }
+    } catch (error) {
+      console.error("Error scheduling audience:", error);
+    }
   }
 }));
+
+// Integración de Socket.IO para tiempo real
+const SOCKET_URL = API_URL.replace('/api', '');
+const socket = io(SOCKET_URL);
+
+socket.on('expediente_creado', (newExp: Expediente) => {
+  useStore.setState((state) => {
+    // Evitar duplicados si ya se añadió localmente
+    if (state.expedientes.some(e => e.id === newExp.id)) return state;
+    return { expedientes: [newExp, ...state.expedientes] };
+  });
+});
+
+socket.on('expediente_actualizado', (updatedExp: Expediente) => {
+  useStore.setState((state) => ({
+    expedientes: state.expedientes.map(exp => 
+      exp.id === updatedExp.id ? { ...exp, ...updatedExp } : exp
+    )
+  }));
+});

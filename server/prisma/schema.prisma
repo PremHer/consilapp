@@ -19,6 +19,7 @@ model Expediente {
   estado         String   @default("RECIBIDO") // RECIBIDO, CALIFICADO, INVITACIONES, AUDIENCIA, CONCLUIDO
   fechaCreacion  DateTime @default(now())
   urgency        String   @default("NORMAL")
+  fechaAudiencia DateTime?
   
   // Relaciones
   solicitanteDni String

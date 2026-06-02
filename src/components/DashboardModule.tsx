@@ -36,9 +36,9 @@ const DashboardModule = () => {
           <div>
             <h3 className="font-headline-sm text-headline-sm mb-xs text-on-surface">Tablero de Conciliación</h3>
             <div className="flex items-center gap-sm text-label-md text-on-surface-variant">
-              <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-primary"></span> 12 Urgentes</span>
+              <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-primary"></span> {expedientes.filter(e => e.urgency === 'URGENTE').length} Urgentes</span>
               <span className="mx-xs">|</span>
-              <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-secondary"></span> 45 En Proceso</span>
+              <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-secondary"></span> {expedientes.filter(e => e.estado !== 'AUDIENCIA').length} En Proceso</span>
             </div>
           </div>
           <div className="flex items-center gap-sm">
@@ -298,6 +298,38 @@ const DashboardModule = () => {
                   )}
                 </div>
               </div>
+
+              {selectedExp.estado === 'AUDIENCIA' && (
+                <div className="border border-outline-variant rounded-lg overflow-hidden">
+                  <div className="bg-primary-container/20 px-md py-sm border-b border-outline-variant flex items-center gap-sm">
+                    <span className="material-symbols-outlined text-primary">event</span>
+                    <h4 className="font-label-lg text-primary">Programación de Audiencia</h4>
+                  </div>
+                  <div className="p-md bg-surface-container-lowest flex flex-col gap-sm">
+                    {selectedExp.fechaAudiencia ? (
+                      <div className="flex justify-between items-center">
+                        <span className="text-body-sm text-on-surface-variant">Fecha programada:</span>
+                        <span className="font-label-md bg-primary-container text-primary px-sm py-xs rounded">
+                          {new Date(selectedExp.fechaAudiencia).toLocaleString()}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-sm">
+                        <input 
+                          type="datetime-local" 
+                          className="flex-1 bg-surface border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary outline-none"
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              useStore.getState().agendarAudiencia(selectedExp.id, e.target.value);
+                              setSelectedExp({ ...selectedExp, fechaAudiencia: e.target.value });
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               
               <div className="flex justify-end pt-sm">
                 <button 

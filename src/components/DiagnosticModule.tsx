@@ -3,27 +3,44 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, AlertTriangle, CheckCircle, ArrowRight, PhoneCall, ShieldAlert, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-type Step = 'nlp_input' | 'nlp_processing' | 'filter_violence' | 'filter_penal' | 'branch_civil' | 'branch_family' | 'result_success' | 'result_rejected';
+type Step = 'nlp_input' | 'nlp_processing' | 'ai_response' | 'filter_violence' | 'filter_penal' | 'branch_civil' | 'branch_family' | 'result_success' | 'result_rejected';
 
 const DiagnosticModule = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('nlp_input');
   const [nlpText, setNlpText] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
   const [detectedBranch, setDetectedBranch] = useState<'Familia' | 'Civil' | null>(null);
 
-  const simulateNLP = () => {
+  const simulateNLP = async () => {
     if (!nlpText) return;
     setStep('nlp_processing');
     
-    setTimeout(() => {
-      // Very basic simulation
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      const res = await fetch(`${API_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ history: [], message: nlpText })
+      });
+      const data = await res.json();
+      setAiResponse(data.response);
+      
       if (nlpText.toLowerCase().includes('hijo') || nlpText.toLowerCase().includes('alimento') || nlpText.toLowerCase().includes('espos')) {
         setDetectedBranch('Familia');
       } else {
         setDetectedBranch('Civil');
       }
+      setStep('ai_response');
+    } catch (err) {
+      console.error(err);
+      if (nlpText.toLowerCase().includes('hijo') || nlpText.toLowerCase().includes('alimento')) {
+        setDetectedBranch('Familia');
+      } else {
+        setDetectedBranch('Civil');
+      }
       setStep('filter_violence');
-    }, 1500);
+    }
   };
 
   const renderStep = () => {
@@ -62,6 +79,30 @@ const DiagnosticModule = () => {
             <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
             <h3 className="font-headline-sm mt-md">Analizando con IA Jurídica...</h3>
             <p className="text-on-surface-variant">Clasificando la materia según la Ley Nº 26872</p>
+          </motion.div>
+        );
+
+      case 'ai_response':
+        return (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-surface-container-lowest p-xl border border-outline-variant rounded-xl shadow-sm">
+            <div className="flex items-center gap-md mb-lg">
+              <MessageSquare className="text-primary" />
+              <h2 className="font-headline-sm text-primary">Análisis de IA Jurídica</h2>
+            </div>
+            <div className="bg-primary-container/10 p-md rounded-lg mb-lg border border-primary/20 whitespace-pre-wrap text-body-md text-on-surface leading-relaxed">
+              {aiResponse}
+            </div>
+            <div className="flex flex-col gap-sm">
+              <p className="font-label-lg text-on-surface">¿Desea continuar con el proceso de admisibilidad?</p>
+              <div className="flex gap-md mt-sm">
+                <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md" onClick={() => setStep('filter_violence')}>
+                  Sí, continuar
+                </button>
+                <button className="border border-outline-variant text-on-surface px-lg py-sm rounded-lg font-label-lg hover:bg-surface-container transition-colors" onClick={() => { setStep('nlp_input'); setNlpText(''); }}>
+                  Hacer otra consulta
+                </button>
+              </div>
+            </div>
           </motion.div>
         );
 
