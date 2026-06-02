@@ -6,6 +6,7 @@ import { useStore } from '../store/useStore';
 const DashboardModule = () => {
   const expedientes = useStore((state) => state.expedientes);
   const fetchExpedientes = useStore((state) => state.fetchExpedientes);
+  const updateExpedienteStatus = useStore((state) => state.updateExpedienteStatus);
 
   React.useEffect(() => {
     fetchExpedientes();
@@ -84,7 +85,12 @@ const DashboardModule = () => {
                       <span className="material-symbols-outlined text-[16px]">schedule</span>
                       <span className="text-label-sm">{new Date(exp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-[10px] font-bold text-on-primary-fixed">{exp.solicitanteNom?.substring(0, 2).toUpperCase() || 'AI'}</div>
+                    <button 
+                      onClick={() => updateExpedienteStatus(exp.id, 'CALIFICADO')}
+                      className="px-sm py-xs bg-primary-container text-primary rounded text-label-sm font-bold hover:bg-primary hover:text-on-primary transition-colors"
+                    >
+                      Calificar
+                    </button>
                   </div>
                 </motion.div>
               ))}
@@ -111,9 +117,17 @@ const DashboardModule = () => {
                   </div>
                   <h4 className="font-label-lg mb-xs">{exp.solicitanteNom}</h4>
                   <p className="text-label-sm text-on-surface-variant mb-md">Materia: {exp.materia}</p>
-                  <div className="flex items-center gap-sm pt-sm border-t border-outline-variant">
-                    <div className="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant text-[10px] font-bold">DR</div>
-                    <span className="text-label-sm">Asignado: {exp.solicitanteNom?.substring(0, 2).toUpperCase() || 'AI'}</span>
+                  <div className="flex items-center justify-between pt-sm border-t border-outline-variant">
+                    <div className="flex items-center gap-xs">
+                      <div className="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant text-[10px] font-bold">DR</div>
+                      <span className="text-label-sm truncate max-w-[80px]">Resp: AI</span>
+                    </div>
+                    <button 
+                      onClick={() => updateExpedienteStatus(exp.id, 'INVITACIONES')}
+                      className="px-sm py-xs bg-secondary-container text-on-secondary-container rounded text-label-sm font-bold hover:bg-secondary hover:text-on-secondary transition-colors"
+                    >
+                      Invitar (WhatsApp)
+                    </button>
                   </div>
                 </motion.div>
               ))}
@@ -142,9 +156,17 @@ const DashboardModule = () => {
                   <div className="w-full bg-surface-container-high rounded-full h-1.5 mb-sm overflow-hidden">
                     <div className={`h-full bg-secondary`} style={{ width: `50%` }}></div>
                   </div>
-                  <div className="flex items-center gap-xs text-[10px] text-on-surface-variant">
-                    <span className={`material-symbols-outlined text-[14px] text-primary`}>schedule</span>
-                    <span>En espera</span>
+                  <div className="flex items-center justify-between text-[10px] text-on-surface-variant">
+                    <div className="flex items-center gap-xs">
+                      <span className={`material-symbols-outlined text-[14px] text-primary`}>schedule</span>
+                      <span>En espera</span>
+                    </div>
+                    <button 
+                      onClick={() => updateExpedienteStatus(exp.id, 'AUDIENCIA')}
+                      className="px-sm py-xs border border-outline-variant rounded text-label-sm font-bold hover:bg-surface-container transition-colors"
+                    >
+                      Audiencia
+                    </button>
                   </div>
                 </motion.div>
               ))}
