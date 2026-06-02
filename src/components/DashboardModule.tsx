@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-import { useStore } from '../store/useStore';
+import { useStore, type Expediente } from '../store/useStore';
 
 const DashboardModule = () => {
   const expedientes = useStore((state) => state.expedientes);
   const fetchExpedientes = useStore((state) => state.fetchExpedientes);
   const updateExpedienteStatus = useStore((state) => state.updateExpedienteStatus);
+  const [selectedExp, setSelectedExp] = React.useState<Expediente | null>(null);
 
   React.useEffect(() => {
     fetchExpedientes();
@@ -71,6 +72,7 @@ const DashboardModule = () => {
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
               {expedientes.filter(e => e.estado === 'RECIBIDO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                  onClick={() => setSelectedExp(exp)}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm hover:border-primary transition-all cursor-grab active:cursor-grabbing group">
                   <div className="flex justify-between items-start mb-sm">
                     <span className="text-label-sm text-primary font-bold">{exp.id}</span>
@@ -86,7 +88,7 @@ const DashboardModule = () => {
                       <span className="text-label-sm">{new Date(exp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     <button 
-                      onClick={() => updateExpedienteStatus(exp.id, 'CALIFICADO')}
+                      onClick={(e) => { e.stopPropagation(); updateExpedienteStatus(exp.id, 'CALIFICADO'); }}
                       className="px-sm py-xs bg-primary-container text-primary rounded text-label-sm font-bold hover:bg-primary hover:text-on-primary transition-colors"
                     >
                       Calificar
@@ -110,7 +112,8 @@ const DashboardModule = () => {
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
               {expedientes.filter(e => e.estado === 'CALIFICADO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                  className={`bg-surface-container-lowest p-md border-l-4 border-l-secondary border-t border-r border-b border-outline-variant rounded-lg shadow-sm hover:shadow-md transition-all`}>
+                  onClick={() => setSelectedExp(exp)}
+                  className={`bg-surface-container-lowest p-md border-l-4 border-l-secondary border-t border-r border-b border-outline-variant rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer`}>
                   <div className="flex justify-between items-start mb-sm">
                     <span className="text-label-sm text-primary font-bold">{exp.id.substring(0, 8)}</span>
                     <span className="flex items-center gap-xs bg-secondary-container text-on-secondary-fixed px-sm py-xs rounded text-[10px] font-bold">NORMAL</span>
@@ -123,7 +126,7 @@ const DashboardModule = () => {
                       <span className="text-label-sm truncate max-w-[80px]">Resp: AI</span>
                     </div>
                     <button 
-                      onClick={() => updateExpedienteStatus(exp.id, 'INVITACIONES')}
+                      onClick={(e) => { e.stopPropagation(); updateExpedienteStatus(exp.id, 'INVITACIONES'); }}
                       className="px-sm py-xs bg-secondary-container text-on-secondary-container rounded text-label-sm font-bold hover:bg-secondary hover:text-on-secondary transition-colors"
                     >
                       Invitar (WhatsApp)
@@ -147,7 +150,8 @@ const DashboardModule = () => {
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
               {expedientes.filter(e => e.estado === 'INVITACIONES').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                  className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm">
+                  onClick={() => setSelectedExp(exp)}
+                  className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm hover:border-primary transition-all cursor-pointer">
                   <div className="flex justify-between items-start mb-sm">
                     <span className="text-label-sm text-primary font-bold">{exp.id.substring(0, 8)}</span>
                     <span className="text-label-sm text-on-surface-variant">{exp.solicitanteNom}</span>
@@ -162,7 +166,7 @@ const DashboardModule = () => {
                       <span>En espera</span>
                     </div>
                     <button 
-                      onClick={() => updateExpedienteStatus(exp.id, 'AUDIENCIA')}
+                      onClick={(e) => { e.stopPropagation(); updateExpedienteStatus(exp.id, 'AUDIENCIA'); }}
                       className="px-sm py-xs border border-outline-variant rounded text-label-sm font-bold hover:bg-surface-container transition-colors"
                     >
                       Audiencia
@@ -186,7 +190,8 @@ const DashboardModule = () => {
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
               {expedientes.filter(e => e.estado === 'AUDIENCIA').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                  className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm ring-1 ring-primary/5">
+                  onClick={() => setSelectedExp(exp)}
+                  className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm ring-1 ring-primary/5 hover:border-primary transition-all cursor-pointer">
                   <div className="flex justify-between items-start mb-sm">
                     <span className="font-label-md text-on-surface-variant bg-surface-container-highest px-sm py-xs rounded-md border border-outline-variant">
                       {exp.id.substring(0, 8)}
@@ -209,7 +214,9 @@ const DashboardModule = () => {
                       </div>
                       <span className="text-label-sm text-on-surface-variant">Asignar...</span>
                     </div>
-                    <button className="py-sm px-md border border-primary text-primary rounded-lg text-label-sm font-bold hover:bg-primary hover:text-on-primary transition-all">
+                    <button 
+                      onClick={(e) => e.stopPropagation()}
+                      className="py-sm px-md border border-primary text-primary rounded-lg text-label-sm font-bold hover:bg-primary hover:text-on-primary transition-all">
                       Ver Detalles de Sala
                     </button>
                   </div>
@@ -225,6 +232,85 @@ const DashboardModule = () => {
       <button className="fixed bottom-lg right-lg w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
         <span className="material-symbols-outlined text-[32px]">add</span>
       </button>
+      {/* Modal de Detalles del Expediente */}
+      {selectedExp && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setSelectedExp(null)}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-surface rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-outline-variant">
+            <div className="flex justify-between items-center p-md bg-surface-container border-b border-outline-variant">
+              <h3 className="font-headline-sm text-on-surface">Detalles del Expediente</h3>
+              <button onClick={() => setSelectedExp(null)} className="text-on-surface-variant hover:text-primary p-xs rounded-full hover:bg-surface-container-highest transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="p-lg space-y-md">
+              <div className="grid grid-cols-2 gap-md">
+                <div className="bg-surface-container-lowest p-sm rounded-lg border border-outline-variant/50">
+                  <p className="text-label-sm text-on-surface-variant mb-xs">Identificador</p>
+                  <p className="font-label-md text-primary">{selectedExp.id}</p>
+                </div>
+                <div className="bg-surface-container-lowest p-sm rounded-lg border border-outline-variant/50">
+                  <p className="text-label-sm text-on-surface-variant mb-xs">Materia</p>
+                  <p className="font-label-md text-on-surface flex items-center gap-xs">
+                    <span className="material-symbols-outlined text-[16px] text-secondary">gavel</span>
+                    {selectedExp.materia}
+                  </p>
+                </div>
+              </div>
+
+              <div className="border border-outline-variant rounded-lg overflow-hidden">
+                <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center gap-sm">
+                  <span className="material-symbols-outlined text-primary">person</span>
+                  <h4 className="font-label-lg text-primary">Datos del Solicitante</h4>
+                </div>
+                <div className="p-md bg-surface-container-lowest space-y-sm">
+                  <div className="flex justify-between">
+                    <span className="text-body-sm text-on-surface-variant">Nombre Completo:</span>
+                    <span className="font-label-md text-on-surface">{selectedExp.solicitanteNom}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-body-sm text-on-surface-variant">DNI:</span>
+                    <span className="font-label-md text-on-surface">{selectedExp.solicitanteDni}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-outline-variant rounded-lg overflow-hidden">
+                <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center gap-sm">
+                  <span className="material-symbols-outlined text-secondary">person_add</span>
+                  <h4 className="font-label-lg text-secondary">Datos del Invitado</h4>
+                </div>
+                <div className="p-md bg-surface-container-lowest space-y-sm">
+                  <div className="flex justify-between">
+                    <span className="text-body-sm text-on-surface-variant">Nombre Completo:</span>
+                    <span className="font-label-md text-on-surface">{selectedExp.invitadoNom}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-body-sm text-on-surface-variant">DNI:</span>
+                    <span className="font-label-md text-on-surface">{selectedExp.invitadoDni}</span>
+                  </div>
+                  {selectedExp.invitadoCelular && (
+                    <div className="flex justify-between">
+                      <span className="text-body-sm text-on-surface-variant">Celular:</span>
+                      <span className="font-label-md text-on-surface">{selectedExp.invitadoCelular}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex justify-end pt-sm">
+                <button 
+                  onClick={() => setSelectedExp(null)} 
+                  className="px-lg py-sm bg-primary text-on-primary rounded-lg font-label-lg hover:bg-primary/90 transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </>
   );
 };
