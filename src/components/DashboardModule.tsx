@@ -89,7 +89,7 @@ const DashboardModule = () => {
                     </div>
                     <button 
                       onClick={(e) => { e.stopPropagation(); updateExpedienteStatus(exp.id, 'CALIFICADO'); }}
-                      className="px-sm py-xs bg-primary-container text-primary rounded text-label-sm font-bold hover:bg-primary hover:text-on-primary transition-colors"
+                      className="px-sm py-xs bg-primary text-on-primary rounded text-label-sm font-bold hover:opacity-90 transition-opacity"
                     >
                       Calificar
                     </button>
