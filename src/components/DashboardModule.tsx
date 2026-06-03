@@ -2,12 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 import { useStore, type Expediente } from '../store/useStore';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardModule = () => {
   const expedientes = useStore((state) => state.expedientes);
   const fetchExpedientes = useStore((state) => state.fetchExpedientes);
   const updateExpedienteStatus = useStore((state) => state.updateExpedienteStatus);
   const [selectedExp, setSelectedExp] = React.useState<Expediente | null>(null);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     fetchExpedientes();
@@ -24,7 +26,7 @@ const DashboardModule = () => {
             <p className="font-body-md text-on-surface-variant">Sede Central - Lima Cercado</p>
           </div>
         </div>
-        <button className="flex items-center gap-sm bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 active:scale-95 transition-all shadow-md">
+        <button onClick={() => navigate('/admisibilidad')} className="flex items-center gap-sm bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 active:scale-95 transition-all shadow-md">
           <span className="material-symbols-outlined">add</span>
           Nueva Solicitud
         </button>
@@ -41,16 +43,20 @@ const DashboardModule = () => {
               <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-secondary"></span> {expedientes.filter(e => e.estado !== 'AUDIENCIA').length} En Proceso</span>
             </div>
           </div>
-          <div className="flex items-center gap-sm">
-            <select className="bg-surface border border-outline-variant rounded-lg text-label-md py-sm px-md focus:border-primary">
-              <option>Especialidad: Todas</option>
-              <option>Civil</option>
-              <option>Familiar</option>
-              <option>Laboral</option>
-            </select>
-            <button className="flex items-center gap-sm bg-surface-container border border-outline-variant px-md py-sm rounded-lg text-label-lg hover:bg-surface-container-high transition-colors">
-              <span className="material-symbols-outlined text-body-md">file_download</span>
-              Exportar Reporte
+          <div className="flex items-center gap-md">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">filter_list</span>
+              <select className="bg-surface-container-lowest border border-outline-variant rounded-lg text-label-md py-sm pl-xl pr-md focus:border-primary focus:ring-1 focus:ring-primary appearance-none hover:bg-surface-container-low transition-colors cursor-pointer outline-none">
+                <option>Todas las materias</option>
+                <option>Civil</option>
+                <option>Familia</option>
+                <option>Comercial</option>
+              </select>
+              <span className="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">arrow_drop_down</span>
+            </div>
+            <button className="flex items-center gap-sm bg-surface-container-lowest border border-outline-variant px-md py-sm rounded-lg text-label-lg hover:border-primary hover:text-primary transition-all shadow-sm">
+              <span className="material-symbols-outlined text-[18px]">download</span>
+              Exportar
             </button>
           </div>
         </div>
@@ -228,10 +234,6 @@ const DashboardModule = () => {
         </div>
       </main>
 
-      {/* Floating Action Button (FAB) */}
-      <button className="fixed bottom-lg right-lg w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
-        <span className="material-symbols-outlined text-[32px]">add</span>
-      </button>
       {/* Modal de Detalles del Expediente */}
       {selectedExp && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setSelectedExp(null)}>
