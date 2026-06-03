@@ -56,7 +56,10 @@ export const useStore = create<StoreState>((set) => ({
       });
       if (response.ok) {
         const newExp = await response.json();
-        set((state) => ({ expedientes: [newExp, ...state.expedientes] }));
+        set((state) => {
+          if (state.expedientes.some(e => e.id === newExp.id)) return state;
+          return { expedientes: [newExp, ...state.expedientes] };
+        });
       }
     } catch (error) {
       console.error("Error adding expediente:", error);
