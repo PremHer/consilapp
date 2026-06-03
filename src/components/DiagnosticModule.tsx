@@ -237,7 +237,7 @@ const DiagnosticModule = () => {
                 Su caso clasifica como <strong>{detectedBranch}</strong> y cumple con los requisitos iniciales de la Ley de Conciliación.
               </p>
               <div className="flex justify-center gap-md mb-lg">
-                <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md flex items-center gap-sm" onClick={() => navigate('/admisibilidad', { state: { materia: detectedBranch } })}>
+                <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md flex items-center gap-sm" onClick={() => navigate('/admisibilidad', { state: { materia: detectedBranch, hechos: nlpText } })}>
                   Continuar al Módulo 2 (Checklist) <ArrowRight size={16} />
                 </button>
               </div>

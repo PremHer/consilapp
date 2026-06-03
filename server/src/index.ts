@@ -35,7 +35,7 @@ app.get('/api/expedientes', async (req, res) => {
 // Crear un nuevo expediente
 app.post('/api/expedientes', async (req, res) => {
   try {
-    const { materia, solicitanteNom, solicitanteDni, invitadoNom, invitadoDni, invitadoCelular } = req.body;
+    const { materia, solicitanteNom, solicitanteDni, invitadoNom, invitadoDni, invitadoCelular, detalles, solicitanteEmail, solicitanteCelular, invitadoDireccion } = req.body;
     
     // Generar un número de expediente tipo #2024-XXX
     const count = await prisma.expediente.count();
@@ -50,6 +50,10 @@ app.post('/api/expedientes', async (req, res) => {
         invitadoNom,
         invitadoDni,
         invitadoCelular,
+        detalles,
+        solicitanteEmail,
+        solicitanteCelular,
+        invitadoDireccion,
         estado: 'RECIBIDO',
         urgency: 'NORMAL'
       }

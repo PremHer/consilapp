@@ -20,6 +20,10 @@ model Expediente {
   fechaCreacion  DateTime @default(now())
   urgency        String   @default("NORMAL")
   fechaAudiencia DateTime?
+  detalles       String?
+  solicitanteEmail String?
+  solicitanteCelular String?
+  invitadoDireccion String?
   
   // Relaciones
   solicitanteDni String

@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import DiagnosticModule from './components/DiagnosticModule';
 import DashboardModule from './components/DashboardModule';
 import AdmisibilidadModule from './components/AdmisibilidadModule';
+import CalendarioModule from './components/CalendarioModule';
+import ReportesModule from './components/ReportesModule';
 
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) => {
   const location = useLocation();
@@ -40,11 +42,11 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
             <span className="material-symbols-outlined">dashboard</span>
             Tablero
           </Link>
-          <Link onClick={() => setIsOpen(false)} to="#" className="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors font-label-lg text-label-lg">
+          <Link onClick={() => setIsOpen(false)} to="/calendario" className={`flex items-center gap-md px-md py-sm font-label-lg text-label-lg transition-colors ${location.pathname === '/calendario' ? 'text-primary font-bold border-r-4 border-primary bg-surface-container-high' : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'}`}>
             <span className="material-symbols-outlined">calendar_today</span>
             Calendario
           </Link>
-          <Link onClick={() => setIsOpen(false)} to="#" className="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors font-label-lg text-label-lg">
+          <Link onClick={() => setIsOpen(false)} to="/reportes" className={`flex items-center gap-md px-md py-sm font-label-lg text-label-lg transition-colors ${location.pathname === '/reportes' ? 'text-primary font-bold border-r-4 border-primary bg-surface-container-high' : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'}`}>
             <span className="material-symbols-outlined">analytics</span>
             Reportes
           </Link>
@@ -113,6 +115,8 @@ function App() {
           <Route path="/" element={<DiagnosticModule />} />
           <Route path="/admisibilidad" element={<AdmisibilidadModule />} />
           <Route path="/dashboard" element={<DashboardModule />} />
+          <Route path="/calendario" element={<CalendarioModule />} />
+          <Route path="/reportes" element={<ReportesModule />} />
         </Routes>
       </Layout>
     </Router>

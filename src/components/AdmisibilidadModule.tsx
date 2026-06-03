@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { UploadCloud, FileCheck, CheckCircle, ArrowRight } from 'lucide-react';
+import { UploadCloud, FileCheck, CheckCircle, ArrowRight, User, Users, FileText } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 const AdmisibilidadModule = () => {
@@ -10,13 +10,20 @@ const AdmisibilidadModule = () => {
   const addExpediente = useStore(state => state.addExpediente);
   
   const materiaPreseleccionada = location.state?.materia || 'CIVIL';
+  const hechosPreseleccionados = location.state?.hechos || '';
 
   const [nombres, setNombres] = useState('');
   const [dniSolicitante, setDniSolicitante] = useState('');
+  const [solicitanteEmail, setSolicitanteEmail] = useState('');
+  const [solicitanteCelular, setSolicitanteCelular] = useState('');
+  
   const [contraparte, setContraparte] = useState('');
   const [dniContraparte, setDniContraparte] = useState('');
   const [celularInvitado, setCelularInvitado] = useState('');
+  const [invitadoDireccion, setInvitadoDireccion] = useState('');
+  
   const [materia, setMateria] = useState(materiaPreseleccionada);
+  const [detalles, setDetalles] = useState(hechosPreseleccionados);
   
   const [files, setFiles] = useState<{ dni: File | null, voucher: File | null, pruebas: File[] }>({
     dni: null,
@@ -41,11 +48,15 @@ const AdmisibilidadModule = () => {
     
     addExpediente({
       materia: materia.toUpperCase(),
+      detalles,
       solicitanteNom: nombres,
       solicitanteDni: dniSolicitante,
+      solicitanteEmail,
+      solicitanteCelular,
       invitadoNom: contraparte,
       invitadoDni: dniContraparte,
-      invitadoCelular: celularInvitado || undefined
+      invitadoCelular: celularInvitado || undefined,
+      invitadoDireccion
     });
     
     setIsSubmitted(true);
@@ -53,7 +64,7 @@ const AdmisibilidadModule = () => {
 
   if (isSubmitted) {
     return (
-      <div className="max-w-3xl mx-auto pt-xl px-md text-center">
+      <div className="max-w-3xl mx-auto pt-xl px-md text-center pb-xl">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-surface-container-lowest border-2 border-green-600 rounded-xl shadow-sm p-xl">
           <CheckCircle size={80} className="text-green-600 mx-auto mb-md" />
           <h2 className="text-green-600 font-headline-lg mb-md">¡Solicitud Enviada con Éxito!</h2>
@@ -61,10 +72,10 @@ const AdmisibilidadModule = () => {
             Su solicitud de conciliación y sus documentos han sido cargados. Nuestro equipo validará el voucher y los anexos en un plazo máximo de 1 día hábil.
           </p>
           <div className="flex justify-center gap-md">
-            <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 shadow-md" onClick={() => navigate('/dashboard')}>
+            <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 shadow-md transition-colors" onClick={() => navigate('/dashboard')}>
               Ir al Tablero del Conciliador
             </button>
-            <button className="border border-outline-variant px-lg py-sm rounded-lg font-label-lg text-on-surface hover:bg-surface-container" onClick={() => navigate('/')}>
+            <button className="border border-outline-variant px-lg py-sm rounded-lg font-label-lg text-on-surface hover:bg-surface-container transition-colors" onClick={() => navigate('/')}>
               Volver al Inicio
             </button>
           </div>
@@ -77,53 +88,105 @@ const AdmisibilidadModule = () => {
     <div className="max-w-4xl mx-auto pt-xl px-md pb-xl">
       <div className="mb-xl">
         <h1 className="font-headline-lg text-primary mb-sm">Módulo de Admisibilidad</h1>
-        <p className="text-on-surface-variant text-body-lg">Carga manual de anexos obligatorios y validación de voucher.</p>
+        <p className="text-on-surface-variant text-body-lg">Complete los datos de las partes y adjunte los documentos probatorios.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
-        {/* Datos Básicos */}
-        <div className="bg-surface-container-lowest p-xl border border-outline-variant rounded-xl shadow-sm">
-          <h3 className="font-headline-sm text-on-surface mb-md">1. Datos de la Solicitud</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-            <div className="md:col-span-2">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-xl">
+        {/* Detalles del Conflicto */}
+        <div className="bg-surface-container-lowest p-lg md:p-xl border border-outline-variant rounded-xl shadow-sm">
+          <div className="flex items-center gap-sm mb-md border-b border-outline-variant pb-sm">
+            <FileText className="text-primary" />
+            <h3 className="font-headline-sm text-on-surface">1. Detalles del Conflicto</h3>
+          </div>
+          <div className="grid grid-cols-1 gap-md">
+            <div>
               <label className="block text-label-lg font-bold text-on-surface mb-xs">Materia Conciliable</label>
-              <input type="text" value={materia} onChange={e => setMateria(e.target.value)} className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg focus:border-primary focus:outline-none" required />
+              <select value={materia} onChange={e => setMateria(e.target.value)} className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                <option value="CIVIL">Civil (Deudas, Desalojos, Incumplimientos)</option>
+                <option value="FAMILIA">Familia (Alimentos, Visitas, Tenencia)</option>
+                <option value="LABORAL">Laboral</option>
+                <option value="CONTRATACIONES">Contrataciones con el Estado</option>
+              </select>
             </div>
-            
             <div>
-              <label className="block text-label-lg font-bold text-on-surface mb-xs">DNI del Solicitante</label>
-              <input type="text" maxLength={8} value={dniSolicitante} onChange={e => setDniSolicitante(e.target.value.replace(/\D/g,''))} placeholder="8 dígitos" className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg focus:border-primary focus:outline-none" required />
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">Descripción de los Hechos</label>
+              <textarea 
+                rows={4} 
+                value={detalles} 
+                onChange={e => setDetalles(e.target.value)} 
+                placeholder="Describa brevemente el problema y qué es lo que solicita..." 
+                className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none" 
+              />
+              {hechosPreseleccionados && <p className="text-label-sm text-secondary font-bold mt-xs">✨ Pre-llenado inteligentemente desde el Triaje Legal.</p>}
             </div>
-            <div>
-              <label className="block text-label-lg font-bold text-on-surface mb-xs">Nombres del Solicitante</label>
-              <input type="text" value={nombres} onChange={e => setNombres(e.target.value)} placeholder="Ej. Juan Pérez" className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg focus:border-primary focus:outline-none" required />
-            </div>
+          </div>
+        </div>
 
+        {/* Datos del Solicitante */}
+        <div className="bg-surface-container-lowest p-lg md:p-xl border border-outline-variant rounded-xl shadow-sm">
+          <div className="flex items-center gap-sm mb-md border-b border-outline-variant pb-sm">
+            <User className="text-primary" />
+            <h3 className="font-headline-sm text-on-surface">2. Datos del Solicitante (Usted)</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
             <div>
-              <label className="block text-label-lg font-bold text-on-surface mb-xs">DNI/RUC del Invitado</label>
-              <input type="text" maxLength={11} value={dniContraparte} onChange={e => setDniContraparte(e.target.value.replace(/\D/g,''))} placeholder="8 u 11 dígitos" className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg focus:border-primary focus:outline-none" required />
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">DNI del Solicitante *</label>
+              <input type="text" maxLength={8} value={dniSolicitante} onChange={e => setDniSolicitante(e.target.value.replace(/\D/g,''))} placeholder="8 dígitos" className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" required />
             </div>
             <div>
-              <label className="block text-label-lg font-bold text-on-surface mb-xs">Nombres de la Contraparte</label>
-              <input type="text" value={contraparte} onChange={e => setContraparte(e.target.value)} placeholder="Ej. Empresa ABC S.A.C" className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg focus:border-primary focus:outline-none" required />
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">Nombres Completos *</label>
+              <input type="text" value={nombres} onChange={e => setNombres(e.target.value)} placeholder="Ej. Juan Pérez" className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" required />
             </div>
+            <div>
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">Correo Electrónico *</label>
+              <input type="email" value={solicitanteEmail} onChange={e => setSolicitanteEmail(e.target.value)} placeholder="correo@ejemplo.com" className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" required />
+            </div>
+            <div>
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">Celular *</label>
+              <input type="text" maxLength={15} value={solicitanteCelular} onChange={e => setSolicitanteCelular(e.target.value.replace(/\D/g,''))} placeholder="Ej. 987654321" className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" required />
+            </div>
+          </div>
+        </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-label-lg font-bold text-on-surface mb-xs">Celular del Invitado (WhatsApp)</label>
-              <input type="text" maxLength={15} value={celularInvitado} onChange={e => setCelularInvitado(e.target.value.replace(/\D/g,''))} placeholder="Ej. 987654321" className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg focus:border-primary focus:outline-none" required />
-              <p className="text-label-sm text-on-surface-variant mt-xs">A este número se enviarán las notificaciones de audiencias.</p>
+        {/* Datos del Invitado */}
+        <div className="bg-surface-container-lowest p-lg md:p-xl border border-outline-variant rounded-xl shadow-sm">
+          <div className="flex items-center gap-sm mb-md border-b border-outline-variant pb-sm">
+            <Users className="text-secondary" />
+            <h3 className="font-headline-sm text-on-surface">3. Datos del Invitado (A quien desea conciliar)</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+            <div>
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">DNI/RUC del Invitado *</label>
+              <input type="text" maxLength={11} value={dniContraparte} onChange={e => setDniContraparte(e.target.value.replace(/\D/g,''))} placeholder="8 u 11 dígitos" className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" required />
+            </div>
+            <div>
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">Nombres o Razón Social *</label>
+              <input type="text" value={contraparte} onChange={e => setContraparte(e.target.value)} placeholder="Ej. Empresa ABC S.A.C" className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" required />
+            </div>
+            <div>
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">Celular del Invitado (Opcional pero recomendado)</label>
+              <input type="text" maxLength={15} value={celularInvitado} onChange={e => setCelularInvitado(e.target.value.replace(/\D/g,''))} placeholder="Ej. 987654321" className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+              <p className="text-label-sm text-on-surface-variant mt-xs">Acelera el proceso al permitir notificaciones inmediatas por WhatsApp.</p>
+            </div>
+            <div>
+              <label className="block text-label-lg font-bold text-on-surface mb-xs">Dirección Física del Invitado *</label>
+              <input type="text" value={invitadoDireccion} onChange={e => setInvitadoDireccion(e.target.value)} placeholder="Av. Los Pinos 123, Distrito" className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" required />
+              <p className="text-label-sm text-on-surface-variant mt-xs">Requerido legalmente para enviar la notificación por courier.</p>
             </div>
           </div>
         </div>
 
         {/* Carga de Documentos */}
-        <div className="bg-surface-container-lowest p-xl border border-outline-variant rounded-xl shadow-sm">
-          <h3 className="font-headline-sm text-on-surface mb-md">2. Anexos y Pruebas</h3>
+        <div className="bg-surface-container-lowest p-lg md:p-xl border border-outline-variant rounded-xl shadow-sm">
+          <div className="flex items-center gap-sm mb-md border-b border-outline-variant pb-sm">
+            <UploadCloud className="text-primary" />
+            <h3 className="font-headline-sm text-on-surface">4. Anexos y Pruebas</h3>
+          </div>
           <p className="text-label-md text-on-surface-variant mb-lg">Formatos aceptados: JPG, PNG, PDF (Máx. 5MB por archivo).</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
             {/* DNI Upload */}
-            <div className="border-2 border-dashed border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center text-center hover:bg-surface-container-low transition-colors relative">
+            <div className="border-2 border-dashed border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center text-center hover:bg-surface-container-low transition-colors relative bg-surface">
               <input type="file" accept="image/*,.pdf" onChange={e => handleFileChange(e, 'dni')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
               {files.dni ? (
                 <>
@@ -134,14 +197,14 @@ const AdmisibilidadModule = () => {
               ) : (
                 <>
                   <UploadCloud size={40} className="text-on-surface-variant mb-sm" />
-                  <span className="font-bold text-on-surface text-label-lg">Copia de DNI (Opcional)</span>
+                  <span className="font-bold text-on-surface text-label-lg">Copia de DNI (Requerido)</span>
                   <span className="text-label-sm text-on-surface-variant mt-xs">Click o arrastrar archivo</span>
                 </>
               )}
             </div>
 
             {/* Voucher Upload */}
-            <div className="border-2 border-dashed border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center text-center hover:bg-surface-container-low transition-colors relative">
+            <div className="border-2 border-dashed border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center text-center hover:bg-surface-container-low transition-colors relative bg-surface">
               <input type="file" accept="image/*,.pdf" onChange={e => handleFileChange(e, 'voucher')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
               {files.voucher ? (
                 <>
@@ -152,7 +215,7 @@ const AdmisibilidadModule = () => {
               ) : (
                 <>
                   <UploadCloud size={40} className="text-on-surface-variant mb-sm" />
-                  <span className="font-bold text-on-surface text-label-lg">Voucher de Pago (Opcional)</span>
+                  <span className="font-bold text-on-surface text-label-lg">Voucher de Pago Arancel</span>
                   <span className="text-label-sm text-on-surface-variant mt-xs">Captura de Yape/Plin o transferencia</span>
                 </>
               )}
@@ -160,12 +223,12 @@ const AdmisibilidadModule = () => {
           </div>
         </div>
 
-        <div className="flex justify-end gap-md mt-md">
-          <button type="button" onClick={() => navigate('/')} className="px-lg py-sm rounded-lg font-label-lg text-on-surface border border-outline-variant hover:bg-surface-container transition-colors">
+        <div className="flex justify-end gap-md">
+          <button type="button" onClick={() => navigate('/')} className="px-lg py-sm rounded-lg font-label-lg text-on-surface border border-outline-variant hover:bg-surface-container transition-colors bg-surface">
             Cancelar
           </button>
-          <button type="submit" disabled={!nombres || !contraparte || !dniSolicitante || !dniContraparte || !celularInvitado} className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md flex items-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed">
-            Enviar Solicitud <ArrowRight size={16} />
+          <button type="submit" disabled={!nombres || !contraparte || !dniSolicitante || !dniContraparte || !invitadoDireccion || !solicitanteEmail} className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md flex items-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            Enviar Solicitud Legal <ArrowRight size={16} />
           </button>
         </div>
       </form>

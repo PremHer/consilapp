@@ -5,11 +5,15 @@ export interface Expediente {
   id: string;
   numero: string;
   materia: string;
+  detalles?: string;
   solicitanteNom: string;
   solicitanteDni: string;
+  solicitanteEmail?: string;
+  solicitanteCelular?: string;
   invitadoNom: string;
   invitadoDni: string;
   invitadoCelular?: string;
+  invitadoDireccion?: string;
   estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA';
   urgency?: 'NORMAL' | 'URGENTE';
   fechaAudiencia?: string;
