@@ -62,7 +62,7 @@ const AdmisibilidadModule = () => {
           </p>
           <div className="flex justify-center gap-md">
             <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 shadow-md" onClick={() => navigate('/dashboard')}>
-              Ir al Tablero del Conciliador (Demo)
+              Ir al Tablero del Conciliador
             </button>
             <button className="border border-outline-variant px-lg py-sm rounded-lg font-label-lg text-on-surface hover:bg-surface-container" onClick={() => navigate('/')}>
               Volver al Inicio
