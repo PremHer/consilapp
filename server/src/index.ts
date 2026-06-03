@@ -78,7 +78,10 @@ app.put('/api/expedientes/:id/estado', async (req, res) => {
     
     // Si el estado pasa a INVITACIONES y hay celular, notificar
     if (estado === 'INVITACIONES' && expediente.invitadoCelular) {
-      const msj = `🏛️ *Centro de Conciliación*\nHola ${expediente.invitadoNom}, se le ha generado una invitación a conciliar solicitada por ${expediente.solicitanteNom} sobre la materia de *${expediente.materia}*.\n\nPor favor, contacte con nosotros para coordinar la audiencia. Expediente: ${expediente.numero}`;
+      const baseUrl = process.env.FRONTEND_URL || 'https://consilapp-production.up.railway.app';
+      const docLink = `${baseUrl}/seguimiento/${expediente.numero.replace('#', '')}`;
+      
+      const msj = `🏛️ *CENTRO DE CONCILIACIÓN EXTRAJUDICIAL*\n\nEstimado(a) *${expediente.invitadoNom}*,\n\nLe informamos formalmente que se ha ingresado una solicitud de conciliación donde usted figura como parte invitada. \n\n📋 *Detalles del Expediente:*\n▪️ *N° Expediente:* ${expediente.numero}\n▪️ *Materia:* ${expediente.materia}\n▪️ *Solicitante:* ${expediente.solicitanteNom}\n\n🔗 *Puede revisar los documentos y anexos presentados ingresando al siguiente enlace seguro:*\n${docLink}\n\n⚠️ *Importante:* La conciliación es un mecanismo rápido y económico para resolver conflictos y evitar un juicio judicial. Le rogamos ponerse en contacto con nuestro Centro para coordinar la fecha y hora de la audiencia.\n\nAtentamente,\n*Área de Notificaciones*`;
       await sendWhatsAppMessage(expediente.invitadoCelular, msj);
     }
     
