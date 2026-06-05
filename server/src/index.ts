@@ -102,7 +102,7 @@ app.put('/api/expedientes/:id/estado', async (req, res) => {
     
     // Si el estado pasa a INVITACIONES y hay celular, notificar
     if (estado === 'INVITACIONES' && expediente.invitadoCelular) {
-      const baseUrl = process.env.FRONTEND_URL || 'https://attractive-reverence-production.up.railway.app';
+      const baseUrl = process.env.FRONTEND_URL || 'https://attractive-reverence-production-6949.up.railway.app';
       const docLink = `${baseUrl}/seguimiento/${expediente.numero.replace('#', '')}`;
       
       const msj = `🏛️ *BRIDGELAW*\n\nEstimado(a) *${expediente.invitadoNom}*,\n\nLe informamos formalmente que se ha ingresado una solicitud de conciliación donde usted figura como parte invitada. \n\n📋 *Detalles del Expediente:*\n▪️ *N° Expediente:* ${expediente.numero}\n▪️ *Materia:* ${expediente.materia}\n▪️ *Solicitante:* ${expediente.solicitanteNom}\n\n🔗 *Puede revisar los documentos y anexos presentados ingresando al siguiente enlace seguro:*\n${docLink}\n\n⚠️ *Importante:* La conciliación es un mecanismo rápido y económico para resolver conflictos y evitar un juicio judicial. Le rogamos ponerse en contacto con nuestro Centro para coordinar la fecha y hora de la audiencia.\n\nAtentamente,\n*Área de Notificaciones*`;
