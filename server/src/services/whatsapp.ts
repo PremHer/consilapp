@@ -1,14 +1,77 @@
-import makeWASocket, { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, Browsers } from '@whiskeysockets/baileys';
+import makeWASocket, { DisconnectReason, fetchLatestBaileysVersion, Browsers, initAuthCreds, BufferJSON, proto, AuthenticationState } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import qrcode from 'qrcode-terminal';
 import pino from 'pino';
+import { prisma } from '../index';
 
 // Variables globales para la conexión del socket
 let sock: ReturnType<typeof makeWASocket> | null = null;
 let isConnected = false;
 
+const writeData = async (data: any, id: string) => {
+  const str = JSON.stringify(data, BufferJSON.replacer);
+  await prisma.whatsAppSession.upsert({
+    where: { id },
+    update: { data: str },
+    create: { id, data: str },
+  });
+};
+
+const readData = async (id: string) => {
+  const item = await prisma.whatsAppSession.findUnique({ where: { id } });
+  if (item) {
+    return JSON.parse(item.data, BufferJSON.reviver);
+  }
+  return null;
+};
+
+const removeData = async (id: string) => {
+  await prisma.whatsAppSession.delete({ where: { id } }).catch(() => {});
+};
+
+async function usePostgresAuthState(): Promise<{ state: AuthenticationState, saveCreds: () => Promise<void> }> {
+  const creds = (await readData('creds')) || initAuthCreds();
+
+  return {
+    state: {
+      creds,
+      keys: {
+        get: async (type, ids) => {
+          const data: any = {};
+          await Promise.all(
+            ids.map(async (id) => {
+              let value = await readData(`${type}-${id}`);
+              if (type === 'app-state-sync-key' && value) {
+                value = proto.Message.AppStateSyncKeyData.fromObject(value);
+              }
+              data[id] = value;
+            })
+          );
+          return data;
+        },
+        set: async (data: any) => {
+          const tasks: Promise<any>[] = [];
+          for (const category in data) {
+            for (const id in data[category]) {
+              const value = data[category][id];
+              const key = `${category}-${id}`;
+              if (value) {
+                tasks.push(writeData(value, key));
+              } else {
+                tasks.push(removeData(key));
+              }
+            }
+          }
+          await Promise.all(tasks);
+        }
+      }
+    },
+    saveCreds: () => writeData(creds, 'creds')
+  };
+}
+
 export async function connectToWhatsApp() {
-  const { state, saveCreds } = await useMultiFileAuthState('baileys_auth_info');
+  const { state, saveCreds } = await usePostgresAuthState();
   const { version } = await fetchLatestBaileysVersion();
   
   sock = makeWASocket({

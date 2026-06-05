@@ -14,7 +14,7 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: '*' }
 });
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());

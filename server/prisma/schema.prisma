@@ -32,3 +32,8 @@ model Expediente {
   invitadoNom    String
   invitadoCelular String? // Para enviar la notificación por WhatsApp
 }
+
+model WhatsAppSession {
+  id    String @id
+  data  String @db.Text
+}
