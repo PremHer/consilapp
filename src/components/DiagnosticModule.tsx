@@ -12,9 +12,12 @@ const DiagnosticModule = () => {
   const [aiResponse, setAiResponse] = useState('');
   const [detectedBranch, setDetectedBranch] = useState<'Familia' | 'Civil' | null>(null);
 
+  const [hasAiError, setHasAiError] = useState(false);
+
   const simulateNLP = async () => {
     if (!nlpText) return;
     setStep('nlp_processing');
+    setHasAiError(false);
     
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -27,6 +30,7 @@ const DiagnosticModule = () => {
       
       if (!res.ok) {
         setAiResponse(`❌ Error del servidor de Inteligencia Artificial: ${data.error || 'Verifica la API KEY de Gemini'}`);
+        setHasAiError(true);
       } else {
         setAiResponse(data.response || "No se recibió respuesta de la IA.");
       }
@@ -39,12 +43,9 @@ const DiagnosticModule = () => {
       setStep('ai_response');
     } catch (err) {
       console.error(err);
-      if (nlpText.toLowerCase().includes('hijo') || nlpText.toLowerCase().includes('alimento')) {
-        setDetectedBranch('Familia');
-      } else {
-        setDetectedBranch('Civil');
-      }
-      setStep('filter_violence');
+      setAiResponse(`❌ Error de conexión con la IA. Por favor, intente nuevamente.`);
+      setHasAiError(true);
+      setStep('ai_response');
     }
   };
 
@@ -91,22 +92,40 @@ const DiagnosticModule = () => {
         return (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-surface-container-lowest p-xl border border-outline-variant rounded-xl shadow-sm">
             <div className="flex items-center gap-md mb-lg">
-              <MessageSquare className="text-primary" />
-              <h2 className="font-headline-sm text-primary">Análisis de IA Jurídica</h2>
+              <MessageSquare className={hasAiError ? "text-error" : "text-primary"} />
+              <h2 className={`font-headline-sm ${hasAiError ? "text-error" : "text-primary"}`}>
+                {hasAiError ? "Error del Sistema IA" : "Análisis de IA Jurídica"}
+              </h2>
             </div>
-            <div className="bg-primary-container/10 p-md rounded-lg mb-lg border border-primary/20 whitespace-pre-wrap text-body-md text-on-surface leading-relaxed">
+            <div className={`${hasAiError ? "bg-error-container/20 border-error/30" : "bg-primary-container/10 border-primary/20"} p-md rounded-lg mb-lg border whitespace-pre-wrap text-body-md text-on-surface leading-relaxed`}>
               {aiResponse}
             </div>
             <div className="flex flex-col gap-sm">
-              <p className="font-label-lg text-on-surface">¿Desea continuar con el proceso de admisibilidad?</p>
-              <div className="flex gap-md mt-sm">
-                <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md" onClick={() => setStep('filter_violence')}>
-                  Sí, continuar
-                </button>
-                <button className="border border-outline-variant text-on-surface px-lg py-sm rounded-lg font-label-lg hover:bg-surface-container transition-colors" onClick={() => { setStep('nlp_input'); setNlpText(''); }}>
-                  Hacer otra consulta
-                </button>
-              </div>
+              {!hasAiError ? (
+                <>
+                  <p className="font-label-lg text-on-surface">¿Desea continuar con el proceso de admisibilidad?</p>
+                  <div className="flex gap-md mt-sm">
+                    <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md" onClick={() => setStep('filter_violence')}>
+                      Sí, continuar
+                    </button>
+                    <button className="border border-outline-variant text-on-surface px-lg py-sm rounded-lg font-label-lg hover:bg-surface-container transition-colors" onClick={() => { setStep('nlp_input'); setNlpText(''); }}>
+                      Hacer otra consulta
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="font-label-lg text-on-surface">Debido al alto tráfico temporal de Google Gemini, no pudimos analizar su texto automáticamente. ¿Desea intentarlo de nuevo o continuar manualmente?</p>
+                  <div className="flex flex-col sm:flex-row gap-md mt-sm">
+                    <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md" onClick={simulateNLP}>
+                      Intentar de nuevo
+                    </button>
+                    <button className="border border-outline-variant text-on-surface px-lg py-sm rounded-lg font-label-lg hover:bg-surface-container transition-colors" onClick={() => setStep('filter_violence')}>
+                      Continuar manualmente
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         );
