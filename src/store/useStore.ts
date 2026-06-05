@@ -64,9 +64,14 @@ export const useStore = create<StoreState>((set) => ({
           if (state.expedientes.some(e => e.id === newExp.id)) return state;
           return { expedientes: [newExp, ...state.expedientes] };
         });
+        return Promise.resolve();
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Error HTTP ${response.status}`);
       }
     } catch (error) {
       console.error("Error adding expediente:", error);
+      throw error;
     }
   },
 

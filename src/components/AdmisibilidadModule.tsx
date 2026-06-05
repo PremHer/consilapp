@@ -43,23 +43,29 @@ const AdmisibilidadModule = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [errorSubmit, setErrorSubmit] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorSubmit(null);
     
-    addExpediente({
-      materia: materia.toUpperCase(),
-      detalles,
-      solicitanteNom: nombres,
-      solicitanteDni: dniSolicitante,
-      solicitanteEmail,
-      solicitanteCelular,
-      invitadoNom: contraparte,
-      invitadoDni: dniContraparte,
-      invitadoCelular: celularInvitado || undefined,
-      invitadoDireccion
-    });
-    
-    setIsSubmitted(true);
+    try {
+      await addExpediente({
+        materia: materia.toUpperCase(),
+        detalles,
+        solicitanteNom: nombres,
+        solicitanteDni: dniSolicitante,
+        solicitanteEmail,
+        solicitanteCelular,
+        invitadoNom: contraparte,
+        invitadoDni: dniContraparte,
+        invitadoCelular: celularInvitado || undefined,
+        invitadoDireccion
+      });
+      setIsSubmitted(true);
+    } catch (err: any) {
+      setErrorSubmit(err.message || "Error desconocido al guardar el expediente.");
+    }
   };
 
   if (isSubmitted) {
@@ -222,6 +228,12 @@ const AdmisibilidadModule = () => {
             </div>
           </div>
         </div>
+
+        {errorSubmit && (
+          <div className="bg-error-container text-on-error-container p-md rounded-lg text-body-md border border-error">
+            <strong>Error al guardar:</strong> {errorSubmit}
+          </div>
+        )}
 
         <div className="flex justify-end gap-md">
           <button type="button" onClick={() => navigate('/')} className="px-lg py-sm rounded-lg font-label-lg text-on-surface border border-outline-variant hover:bg-surface-container transition-colors bg-surface">
