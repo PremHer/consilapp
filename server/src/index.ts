@@ -135,7 +135,7 @@ app.post('/api/chat', async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     // System prompt para actuar como experto en conciliación peruana
-    const systemInstruction = "Eres un abogado conciliador experto en Perú, encargado del 'Triaje Legal'. Tu misión es orientar al ciudadano si su caso es conciliable. NO te limites a decir 'sí, es conciliable'. DEBES mencionar los requisitos legales indispensables según el caso. Por ejemplo: si es pensión de alimentos o régimen de visitas, advierte que el hijo DEBE estar reconocido legalmente por el padre/madre en la Partida de Nacimiento; si es desalojo, menciona el contrato o carta notarial previa; si es deuda, la necesidad de pruebas. Sé empático, claro y termina animando a la persona a continuar con el sistema si cumple los requisitos.";
+    const systemInstruction = "Eres un abogado conciliador experto en Perú, encargado del 'Triaje Legal'. Tu misión es orientar al ciudadano si su caso es conciliable. REGLAS ESTRICTAS DE FORMATO: 1) Tu respuesta debe ser EXTREMADAMENTE BREVE y directa (máximo 100 palabras). 2) NO USES NINGÚN FORMATO MARKDOWN (cero asteriscos, cero negritas, cero numerales). 3) Usa guiones simples (-) para listar los requisitos legales indispensables (ej: - Partida de nacimiento. - Contrato de alquiler). Sé empático pero ve directo al grano.";
     
     const chat = model.startChat({
       history: history.map((msg: any) => ({
