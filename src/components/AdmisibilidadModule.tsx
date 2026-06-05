@@ -44,10 +44,14 @@ const AdmisibilidadModule = () => {
   };
 
   const [errorSubmit, setErrorSubmit] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    
     setErrorSubmit(null);
+    setIsSubmitting(true);
     
     try {
       await addExpediente({
@@ -65,6 +69,8 @@ const AdmisibilidadModule = () => {
       setIsSubmitted(true);
     } catch (err: any) {
       setErrorSubmit(err.message || "Error desconocido al guardar el expediente.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -239,8 +245,10 @@ const AdmisibilidadModule = () => {
           <button type="button" onClick={() => navigate('/')} className="px-lg py-sm rounded-lg font-label-lg text-on-surface border border-outline-variant hover:bg-surface-container transition-colors bg-surface">
             Cancelar
           </button>
-          <button type="submit" disabled={!nombres || !contraparte || !dniSolicitante || !dniContraparte || !invitadoDireccion || !solicitanteEmail} className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md flex items-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed">
-            Enviar Solicitud Legal <ArrowRight size={16} />
+          <button type="submit" disabled={isSubmitting || !nombres || !contraparte || !dniSolicitante || !dniContraparte || !invitadoDireccion || !solicitanteEmail} className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 transition-all shadow-md flex items-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            {isSubmitting ? 'Enviando...' : (
+              <>Enviar Solicitud Legal <ArrowRight size={16} /></>
+            )}
           </button>
         </div>
       </form>
