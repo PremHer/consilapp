@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, AlertTriangle, CheckCircle, ArrowRight, PhoneCall, ShieldAlert, FileText } from 'lucide-react';
+import { MessageSquare, AlertTriangle, CheckCircle, ArrowRight, PhoneCall, ShieldAlert, FileText, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 type Step = 'nlp_input' | 'nlp_processing' | 'ai_response' | 'filter_violence' | 'filter_penal' | 'branch_civil' | 'branch_family' | 'result_success' | 'result_rejected';
@@ -251,15 +251,101 @@ const DiagnosticModule = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto pt-xl px-md">
-      <div className="mb-xl text-center">
-        <h1 className="font-headline-lg text-primary mb-sm">Triaje Legal y Diagnóstico</h1>
-        <p className="text-on-surface-variant text-body-lg">Evaluación automática de conciliabilidad basada en la legislación peruana.</p>
+    <div className="bg-surface">
+      {/* Hero Section */}
+      <div className="bg-primary-container/30 border-b border-outline-variant pb-2xl pt-xl px-md text-center">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="font-headline-lg md:text-5xl text-primary font-bold mb-md leading-tight">
+            Resuelva sus conflictos legales <br className="hidden md:block" /> sin ir a juicio
+          </h1>
+          <p className="text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-xl">
+            La conciliación extrajudicial es un mecanismo rápido, económico y seguro para resolver problemas familiares y civiles con valor legal de sentencia.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-md">
+            <button 
+              onClick={() => {
+                document.getElementById('triaje-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="bg-primary text-on-primary px-xl py-sm rounded-full font-label-lg hover:opacity-90 transition-all shadow-md flex justify-center items-center gap-sm text-lg"
+            >
+              Iniciar Triaje Gratuito <ArrowRight size={20} />
+            </button>
+            <button className="border border-outline-variant text-on-surface px-xl py-sm rounded-full font-label-lg hover:bg-surface-container transition-colors text-lg">
+              Conocer más
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <AnimatePresence mode="wait">
-        {renderStep()}
-      </AnimatePresence>
+
+      {/* Info Sections */}
+      <div className="max-w-6xl mx-auto py-2xl px-md grid grid-cols-1 md:grid-cols-3 gap-xl">
+        <div className="text-center p-lg">
+          <div className="w-16 h-16 bg-secondary-container text-on-secondary-container rounded-2xl flex items-center justify-center mx-auto mb-md rotate-3 shadow-sm">
+            <CheckCircle size={32} />
+          </div>
+          <h3 className="font-headline-sm mb-sm text-on-surface">100% Legal</h3>
+          <p className="text-on-surface-variant text-body-md">El acta de conciliación tiene el mismo valor que la sentencia de un juez.</p>
+        </div>
+        <div className="text-center p-lg">
+          <div className="w-16 h-16 bg-tertiary-container text-on-tertiary-container rounded-2xl flex items-center justify-center mx-auto mb-md -rotate-3 shadow-sm">
+            <Clock size={32} />
+          </div>
+          <h3 className="font-headline-sm mb-sm text-on-surface">Mucho más rápido</h3>
+          <p className="text-on-surface-variant text-body-md">Un juicio puede durar años. Una conciliación se resuelve en 1 a 2 semanas.</p>
+        </div>
+        <div className="text-center p-lg">
+          <div className="w-16 h-16 bg-error-container text-on-error-container rounded-2xl flex items-center justify-center mx-auto mb-md rotate-3 shadow-sm">
+            <FileText size={32} />
+          </div>
+          <h3 className="font-headline-sm mb-sm text-on-surface">Menos desgaste</h3>
+          <p className="text-on-surface-variant text-body-md">Se evita el estrés de los tribunales conversando en un ambiente pacífico.</p>
+        </div>
+      </div>
+
+      {/* Casos de Uso */}
+      <div className="bg-surface-container-lowest py-2xl px-md border-y border-outline-variant">
+        <div className="max-w-4xl mx-auto text-center mb-xl">
+          <h2 className="font-headline-md text-primary font-bold mb-sm">¿Qué casos se pueden conciliar?</h2>
+          <p className="text-on-surface-variant text-body-lg">Existen materias específicas reguladas por la Ley de Conciliación N° 26872.</p>
+        </div>
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-lg">
+          <div className="bg-surface p-xl rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+            <h3 className="font-headline-sm text-primary mb-md border-b border-outline-variant pb-sm">Familia</h3>
+            <ul className="space-y-sm text-on-surface">
+              <li className="flex items-start gap-sm"><CheckCircle size={18} className="text-green-600 mt-xs" /> Pensión de alimentos (aumento, reducción o exoneración)</li>
+              <li className="flex items-start gap-sm"><CheckCircle size={18} className="text-green-600 mt-xs" /> Régimen de visitas para los hijos</li>
+              <li className="flex items-start gap-sm"><CheckCircle size={18} className="text-green-600 mt-xs" /> Tenencia y custodia de menores</li>
+              <li className="flex items-start gap-sm"><CheckCircle size={18} className="text-green-600 mt-xs" /> Gastos de embarazo y parto</li>
+            </ul>
+          </div>
+          <div className="bg-surface p-xl rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+            <h3 className="font-headline-sm text-secondary mb-md border-b border-outline-variant pb-sm">Civil y Comercial</h3>
+            <ul className="space-y-sm text-on-surface">
+              <li className="flex items-start gap-sm"><CheckCircle size={18} className="text-green-600 mt-xs" /> Desalojos y problemas con inquilinos</li>
+              <li className="flex items-start gap-sm"><CheckCircle size={18} className="text-green-600 mt-xs" /> Cobro de deudas (préstamos, alquileres)</li>
+              <li className="flex items-start gap-sm"><CheckCircle size={18} className="text-green-600 mt-xs" /> Incumplimiento de contratos</li>
+              <li className="flex items-start gap-sm"><CheckCircle size={18} className="text-green-600 mt-xs" /> División y partición de bienes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Triaje Section */}
+      <div id="triaje-section" className="max-w-3xl mx-auto pt-2xl px-md pb-2xl">
+        <div className="mb-xl text-center">
+          <div className="inline-flex items-center justify-center p-sm bg-primary-container text-on-primary-container rounded-full mb-md">
+            <ShieldAlert size={24} />
+          </div>
+          <h2 className="font-headline-lg text-primary font-bold mb-sm">Triaje Legal Virtual</h2>
+          <p className="text-on-surface-variant text-body-lg">
+            Nuestra IA analizará su caso gratis en segundos para decirle si es conciliable y qué debe hacer.
+          </p>
+        </div>
+        
+        <AnimatePresence mode="wait">
+          {renderStep()}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
