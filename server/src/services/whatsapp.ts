@@ -144,7 +144,8 @@ export async function sendWhatsAppMessage(phone: string, text: string) {
 export async function forceClearSession() {
   console.log("🧹 Limpiando sesión de WhatsApp forzosamente...");
   if (sock) {
-    sock.ev.removeAllListeners();
+    sock.ev.removeAllListeners('creds.update');
+    sock.ev.removeAllListeners('connection.update');
   }
   await prisma.whatsAppSession.deleteMany();
   console.log("✅ Base de datos limpiada, reiniciando proceso...");
