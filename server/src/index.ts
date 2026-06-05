@@ -165,6 +165,18 @@ app.get('/api/clear-session', async (req, res) => {
   }
 });
 
+import path from 'path';
+
+// Servir el frontend de React (Vite)
+const distPath = path.join(__dirname, '../../dist');
+
+app.use(express.static(distPath));
+
+// Cualquier otra ruta que no sea de la API, se la pasamos a React (SPA Routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Servidor de Conciliación corriendo en el puerto ${PORT}`);
