@@ -107,6 +107,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+import SeguimientoModule from './components/SeguimientoModule';
+
 function App() {
   return (
     <Router>
@@ -117,6 +119,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardModule />} />
           <Route path="/calendario" element={<CalendarioModule />} />
           <Route path="/reportes" element={<ReportesModule />} />
+          <Route path="/seguimiento/:numero" element={<SeguimientoModule />} />
         </Routes>
       </Layout>
     </Router>

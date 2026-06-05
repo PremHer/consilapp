@@ -32,6 +32,26 @@ app.get('/api/expedientes', async (req, res) => {
   }
 });
 
+// Obtener un solo expediente por número para la vista pública
+app.get('/api/expedientes/buscar/:numero', async (req, res) => {
+  try {
+    // El frontend nos enviará el número sin el # (ej. 2024-028)
+    const numero = `#${req.params.numero}`;
+    const expediente = await prisma.expediente.findFirst({
+      where: { numero }
+    });
+    
+    if (!expediente) {
+      return res.status(404).json({ error: 'Expediente no encontrado' });
+    }
+    
+    res.json(expediente);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al buscar el expediente' });
+  }
+});
+
 // Crear un nuevo expediente
 app.post('/api/expedientes', async (req, res) => {
   try {
