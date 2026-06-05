@@ -209,15 +209,26 @@ app.post('/api/chat', async (req, res) => {
     
     if (!process.env.GEMINI_API_KEY) {
       return res.json({ 
-        response: "🤖 *Aviso de Sistema:* La Inteligencia Artificial no está conectada (Falta GEMINI_API_KEY en Railway). Configúrala para obtener respuestas legales reales. Por ahora te recomiendo llenar tu solicitud de conciliación directamente." 
+        response: "🤖 *Aviso de Sistema:* La Inteligencia Artificial no está conectada (Falta GEMINI_API_KEY en Railway). Configúrala para obtener respuestas legales reales. Por ahora te recomiendo llenar tu solicitud de conciliación directamente.",
+        isConciliable: true
       });
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      }
+    });
     
-    // System prompt para actuar como experto en conciliación peruana
-    const systemInstruction = "Eres un abogado conciliador experto en Perú, encargado del 'Triaje Legal'. Tu misión es orientar al ciudadano si su caso es conciliable. REGLAS ESTRICTAS DE FORMATO: 1) Tu respuesta debe ser EXTREMADAMENTE BREVE y directa (máximo 100 palabras). 2) NO USES NINGÚN FORMATO MARKDOWN (cero asteriscos, cero negritas, cero numerales). 3) Usa guiones simples (-) para listar los requisitos legales indispensables (ej: - Partida de nacimiento. - Contrato de alquiler). Sé empático pero ve directo al grano.";
+    // System prompt para actuar como experto en conciliación peruana y retornar JSON
+    const systemInstruction = `Eres un abogado conciliador experto en Perú, encargado del 'Triaje Legal'. Tu misión es orientar al ciudadano si su caso es conciliable.
+Debes responder en JSON estricto con esta estructura:
+{
+  "isConciliable": boolean, // true si es materia conciliable (familia, civil, deudas). false si es violencia familiar, agresion física, delitos penales o robo.
+  "response": "Explicación muy breve y directa (máximo 100 palabras). Usa guiones simples (-) para listar requisitos. No uses Markdown."
+}`;
     
     const chat = model.startChat({
       history: history.map((msg: any) => ({
@@ -227,9 +238,13 @@ app.post('/api/chat', async (req, res) => {
     });
 
     const result = await chat.sendMessage(systemInstruction + "\n\nPregunta del usuario: " + message);
-    const response = result.response.text();
+    const jsonStr = result.response.text();
+    const data = JSON.parse(jsonStr);
     
-    res.json({ response });
+    res.json({ 
+      response: data.response, 
+      isConciliable: data.isConciliable 
+    });
   } catch (error: any) {
     console.error("Error en AI Chat:", error);
     res.status(500).json({ error: error?.message || 'Error procesando el chat' });
