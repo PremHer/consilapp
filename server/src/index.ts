@@ -157,10 +157,9 @@ app.post('/api/chat', async (req, res) => {
 // Endpoint de emergencia para limpiar sesión corrupta de WhatsApp
 app.get('/api/clear-session', async (req, res) => {
   try {
-    await prisma.whatsAppSession.deleteMany();
-    res.send('✅ Sesión de WhatsApp borrada exitosamente. Por favor, revisa la consola de Railway en unos segundos para escanear el nuevo código QR.');
-    // Matamos el proceso para forzar un reinicio del bot y genere un QR nuevo
-    setTimeout(() => process.exit(0), 2000);
+    res.send('✅ Ejecutando limpieza de WhatsApp... En unos segundos revisa los logs en Railway para escanear el código QR.');
+    const { forceClearSession } = require('./services/whatsapp');
+    setTimeout(() => forceClearSession(), 500);
   } catch (error) {
     res.status(500).send('Error borrando la sesión');
   }

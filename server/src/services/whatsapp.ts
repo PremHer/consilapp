@@ -140,3 +140,13 @@ export async function sendWhatsAppMessage(phone: string, text: string) {
     return false;
   }
 }
+
+export async function forceClearSession() {
+  console.log("🧹 Limpiando sesión de WhatsApp forzosamente...");
+  if (sock) {
+    sock.ev.removeAllListeners();
+  }
+  await prisma.whatsAppSession.deleteMany();
+  console.log("✅ Base de datos limpiada, reiniciando proceso...");
+  process.exit(0);
+}
