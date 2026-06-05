@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, FileText, Calendar, CheckCircle, Clock, ShieldAlert } from 'lucide-react';
+import { Search, FileText, Calendar, CheckCircle, ShieldAlert } from 'lucide-react';
 import type { Expediente } from '../store/useStore';
 
 const SeguimientoModule = () => {
