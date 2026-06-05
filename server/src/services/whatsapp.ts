@@ -15,7 +15,7 @@ export async function connectToWhatsApp() {
     version,
     auth: state,
     printQRInTerminal: false,
-    logger: pino({ level: 'error' }),
+    logger: pino({ level: 'silent' }),
     browser: Browsers.macOS('Desktop')
   });
 
@@ -34,10 +34,17 @@ export async function connectToWhatsApp() {
       const error = lastDisconnect?.error as Boom;
       const statusCode = error?.output?.statusCode;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-      console.error('⚠️ Conexión cerrada. Código de error:', statusCode, 'Mensaje:', error?.message);
+      
       isConnected = false;
+      
+      if (statusCode === DisconnectReason.restartRequired) {
+        console.log('🔄 Reiniciando conexión de WhatsApp de forma transparente (Código 515)...');
+      } else {
+        console.error('⚠️ Conexión de WhatsApp cerrada. Código:', statusCode);
+      }
+      
       if (shouldReconnect) {
-        setTimeout(connectToWhatsApp, 5000);
+        setTimeout(connectToWhatsApp, 2000);
       }
     } else if (connection === 'open') {
       console.log('✅ Bot de WhatsApp conectado y listo para enviar invitaciones.');
