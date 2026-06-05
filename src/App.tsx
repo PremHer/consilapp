@@ -54,10 +54,10 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
         
         <div className="px-lg mt-auto pt-lg border-t border-outline-variant">
           <div className="flex items-center gap-sm p-sm rounded-lg bg-surface-container-low">
-            <img className="w-10 h-10 rounded-full border border-outline-variant" alt="Conciliador" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-HXj8TUyWODWGgxkVsaz2reynhp5Kb25IdUYl_FKKAwoMFYJ_mxOIpbNCWghDNIZiNYqfqS-CIE5gDJkNFvAs28VmIGJez9lRNwxuQYznoGDovfpqptyuIBnmcvUdDUe3_pkA_A026U0q21gno8XCEZJ5OBhx2bp3T-d6SItnzxDeCcI8DMjR2pViqCzJXDSTHY7o5CV7M-CT0lEvuQusklVO53XjNEK-O77P5Dw059sOi6aAi-hHDFmgh_XZdwv7PQX_2kLQVCs" />
+            <img className="w-10 h-10 rounded-full border border-outline-variant object-cover" alt="Conciliador" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" />
             <div className="overflow-hidden">
-              <p className="text-label-lg truncate">Dr. Ricardo Palma</p>
-              <p className="text-label-sm text-on-surface-variant">Conciliador Senior</p>
+              <p className="text-label-lg truncate">Dra. Yocely Tapia</p>
+              <p className="text-label-sm text-on-surface-variant">Conciliadora Senior</p>
             </div>
           </div>
         </div>
