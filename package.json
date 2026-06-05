@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cd server && npm install && npx prisma generate && tsc",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview --host",
-    "start": "cd server && npm start"
+    "start": "vite preview --host --port $PORT"
   },
   "dependencies": {
     "framer-motion": "^12.40.0",
