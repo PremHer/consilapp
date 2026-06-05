@@ -6,6 +6,8 @@ import { connectToWhatsApp, sendWhatsAppMessage } from './services/whatsapp';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -18,6 +20,66 @@ export const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_bridgelaw_2024';
+
+// Seeding: Crear usuario admin si no existe
+async function seedAdmin() {
+  const adminExists = await prisma.usuario.findUnique({
+    where: { email: 'admin@bridgelaw.com' }
+  });
+
+  if (!adminExists) {
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await prisma.usuario.create({
+      data: {
+        email: 'admin@bridgelaw.com',
+        password: hashedPassword,
+        nombre: 'Dra. Yocely Tapia',
+        rol: 'ADMIN'
+      }
+    });
+    console.log('Usuario administrador creado con éxito.');
+  }
+}
+
+seedAdmin().catch(console.error);
+
+// Endpoint de Login
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const usuario = await prisma.usuario.findUnique({ where: { email } });
+    if (!usuario) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, usuario.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    const token = jwt.sign(
+      { id: usuario.id, email: usuario.email, rol: usuario.rol },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: usuario.id,
+        email: usuario.email,
+        nombre: usuario.nombre,
+        rol: usuario.rol
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
 
 // Obtener todos los expedientes
 app.get('/api/expedientes', async (req, res) => {

@@ -37,3 +37,11 @@ model WhatsAppSession {
   id    String @id
   data  String @db.Text
 }
+
+model Usuario {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  nombre   String
+  rol      String @default("CONCILIADOR")
+}
