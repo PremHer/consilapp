@@ -22,7 +22,7 @@ const DashboardModule = () => {
         <div className="flex items-center gap-md">
           <span className="material-symbols-outlined text-primary text-headline-md">gavel</span>
           <div>
-            <h2 className="font-headline-md text-headline-md text-primary">Centro de Conciliación</h2>
+            <h2 className="font-headline-md text-headline-md text-primary">Bridgelaw</h2>
             <p className="font-body-md text-on-surface-variant">Sede Central - Lima Cercado</p>
           </div>
         </div>

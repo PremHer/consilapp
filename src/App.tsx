@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
           <div className="flex items-center gap-sm">
             <img className="w-8 h-8 rounded-full object-cover" alt="Seal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDch-NJqXXr7K1w_Oazw6NiXeOF7dWh-b6q6VOvyRN5odxoxPzkvBW08cKC-JrfPadhfnu3NoXLdSIRTSZ2aZ5aA6Xoq49vt66NGGL99fs8nDZyx-vCZ3VSb8hfnDKhNOh-icwXUfEXhuoaBNVYZz7PhHa7diCgOeCAjogrIlvIw1COTKXLMOXJafxednXdG7OsvWOIQLy9rYYvq0fak0voP-UHAU3R_Dk7oc85ipnvZv16EhTh83xLrdpEttnLbJ4Mmb0wavJQ3CY" />
             <div>
-              <h1 className="font-headline-sm text-headline-sm font-bold text-primary">CONCILIACIÓN</h1>
+              <h1 className="font-headline-sm text-headline-sm font-bold text-primary">BRIDGELAW</h1>
               <p className="font-label-sm text-on-surface-variant">Gestión Judicial</p>
             </div>
           </div>

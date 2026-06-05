@@ -85,7 +85,7 @@ app.put('/api/expedientes/:id/estado', async (req, res) => {
       const baseUrl = process.env.FRONTEND_URL || 'https://consilapp-production.up.railway.app';
       const docLink = `${baseUrl}/seguimiento/${expediente.numero.replace('#', '')}`;
       
-      const msj = `🏛️ *CENTRO DE CONCILIACIÓN EXTRAJUDICIAL*\n\nEstimado(a) *${expediente.invitadoNom}*,\n\nLe informamos formalmente que se ha ingresado una solicitud de conciliación donde usted figura como parte invitada. \n\n📋 *Detalles del Expediente:*\n▪️ *N° Expediente:* ${expediente.numero}\n▪️ *Materia:* ${expediente.materia}\n▪️ *Solicitante:* ${expediente.solicitanteNom}\n\n🔗 *Puede revisar los documentos y anexos presentados ingresando al siguiente enlace seguro:*\n${docLink}\n\n⚠️ *Importante:* La conciliación es un mecanismo rápido y económico para resolver conflictos y evitar un juicio judicial. Le rogamos ponerse en contacto con nuestro Centro para coordinar la fecha y hora de la audiencia.\n\nAtentamente,\n*Área de Notificaciones*`;
+      const msj = `🏛️ *BRIDGELAW*\n\nEstimado(a) *${expediente.invitadoNom}*,\n\nLe informamos formalmente que se ha ingresado una solicitud de conciliación donde usted figura como parte invitada. \n\n📋 *Detalles del Expediente:*\n▪️ *N° Expediente:* ${expediente.numero}\n▪️ *Materia:* ${expediente.materia}\n▪️ *Solicitante:* ${expediente.solicitanteNom}\n\n🔗 *Puede revisar los documentos y anexos presentados ingresando al siguiente enlace seguro:*\n${docLink}\n\n⚠️ *Importante:* La conciliación es un mecanismo rápido y económico para resolver conflictos y evitar un juicio judicial. Le rogamos ponerse en contacto con nuestro Centro para coordinar la fecha y hora de la audiencia.\n\nAtentamente,\n*Área de Notificaciones*`;
       await sendWhatsAppMessage(expediente.invitadoCelular, msj);
     }
     
@@ -151,6 +151,18 @@ app.post('/api/chat', async (req, res) => {
   } catch (error: any) {
     console.error("Error en AI Chat:", error);
     res.status(500).json({ error: error?.message || 'Error procesando el chat' });
+  }
+});
+
+// Endpoint de emergencia para limpiar sesión corrupta de WhatsApp
+app.get('/api/clear-session', async (req, res) => {
+  try {
+    await prisma.whatsAppSession.deleteMany();
+    res.send('✅ Sesión de WhatsApp borrada exitosamente. Por favor, revisa la consola de Railway en unos segundos para escanear el nuevo código QR.');
+    // Matamos el proceso para forzar un reinicio del bot y genere un QR nuevo
+    setTimeout(() => process.exit(0), 2000);
+  } catch (error) {
+    res.status(500).send('Error borrando la sesión');
   }
 });
 
