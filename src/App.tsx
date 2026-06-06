@@ -85,8 +85,25 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
 const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) => void, isPublic?: boolean }) => {
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showSettings, setShowSettings] = React.useState(false);
+  
+  const [showProfile, setShowProfile] = React.useState(false);
+  const [showSecurity, setShowSecurity] = React.useState(false);
+  const [isDark, setIsDark] = React.useState(() => document.documentElement.classList.contains('dark-theme'));
+  const user = useAuthStore(state => state.user);
+
+  const toggleDarkMode = () => {
+    const isNowDark = !isDark;
+    setIsDark(isNowDark);
+    if (isNowDark) {
+      document.documentElement.classList.add('dark-theme');
+    } else {
+      document.documentElement.classList.remove('dark-theme');
+    }
+    setShowSettings(false);
+  };
 
   return (
+    <>
     <header className="flex justify-between items-center px-md md:px-lg py-sm h-16 w-full bg-surface-container-lowest border-b border-outline-variant shadow-sm transition-all duration-200 z-30 sticky top-0">
       <div className="flex items-center gap-md flex-1 max-w-xl">
         {!isPublic && setIsOpen && (
@@ -131,18 +148,13 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
               <div className="absolute right-0 mt-2 w-80 bg-surface rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50">
                 <div className="p-md border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
                   <h3 className="font-label-lg font-bold">Notificaciones</h3>
-                  <button className="text-primary text-label-sm hover:underline">Marcar leídas</button>
+                  <button className="text-primary text-label-sm hover:underline" onClick={() => setShowNotifications(false)}>Cerrar</button>
                 </div>
                 <div className="max-h-64 overflow-y-auto">
                   <div className="p-md border-b border-outline-variant hover:bg-surface-container-lowest transition-colors cursor-pointer">
                     <p className="text-label-md font-bold text-on-surface">Nuevo expediente ingresado</p>
                     <p className="text-body-sm text-on-surface-variant">Se ha registrado el exp. #2026-003</p>
                     <p className="text-[10px] text-primary mt-xs">Hace 5 min</p>
-                  </div>
-                  <div className="p-md hover:bg-surface-container-lowest transition-colors cursor-pointer">
-                    <p className="text-label-md font-bold text-on-surface">Audiencia próxima</p>
-                    <p className="text-body-sm text-on-surface-variant">Audiencia programada para hoy a las 3:00 PM</p>
-                    <p className="text-[10px] text-primary mt-xs">Hace 1 hora</p>
                   </div>
                 </div>
               </div>
@@ -162,14 +174,15 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
                   <h3 className="font-label-lg font-bold">Configuración</h3>
                 </div>
                 <div className="p-sm flex flex-col">
-                  <button className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
-                    <span className="material-symbols-outlined text-[20px]">person</span> Perfil
+                  <button onClick={() => {setShowProfile(true); setShowSettings(false);}} className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
+                    <span className="material-symbols-outlined text-[20px]">person</span> Perfil Profesional
                   </button>
-                  <button className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
-                    <span className="material-symbols-outlined text-[20px]">dark_mode</span> Tema Oscuro (Próximamente)
+                  <button onClick={toggleDarkMode} className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
+                    <span className="material-symbols-outlined text-[20px]">{isDark ? 'light_mode' : 'dark_mode'}</span> 
+                    {isDark ? 'Desactivar Modo Oscuro' : 'Activar Modo Oscuro'}
                   </button>
-                  <button className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
-                    <span className="material-symbols-outlined text-[20px]">security</span> Seguridad
+                  <button onClick={() => {setShowSecurity(true); setShowSettings(false);}} className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
+                    <span className="material-symbols-outlined text-[20px]">security</span> Seguridad y Contraseña
                   </button>
                 </div>
               </div>
@@ -185,6 +198,63 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
         </div>
       )}
     </header>
+
+    {/* Modal de Perfil */}
+    {showProfile && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-md" onClick={() => setShowProfile(false)}>
+        <div className="bg-surface rounded-xl max-w-sm w-full border border-outline-variant overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="p-md bg-surface-container-low border-b border-outline-variant flex justify-between items-center">
+            <h3 className="font-label-lg font-bold text-on-surface">Perfil Profesional</h3>
+            <button onClick={() => setShowProfile(false)} className="text-on-surface-variant hover:text-primary"><span className="material-symbols-outlined">close</span></button>
+          </div>
+          <div className="p-lg flex flex-col items-center">
+            <img className="w-24 h-24 rounded-full border-4 border-surface-container object-cover mb-md shadow-sm" alt="Conciliador" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" />
+            <h2 className="font-headline-sm text-primary">{user?.nombre || 'Dra. Yocely Tapia'}</h2>
+            <p className="text-label-lg text-on-surface-variant mb-lg">{user?.rol || 'Conciliadora Senior'}</p>
+            
+            <div className="w-full space-y-sm bg-surface-container-lowest p-md rounded-lg border border-outline-variant/50">
+              <div className="flex justify-between">
+                <span className="text-body-sm text-on-surface-variant">Sede:</span>
+                <span className="font-label-md">Lima Cercado</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-body-sm text-on-surface-variant">Resolución Ministerial:</span>
+                <span className="font-label-md">N° 124-2023-MINJUS</span>
+              </div>
+            </div>
+            
+            <button onClick={() => setShowProfile(false)} className="mt-lg w-full py-sm bg-primary text-on-primary rounded-lg font-bold hover:bg-primary/90 transition-colors">Guardar Cambios</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Modal de Seguridad */}
+    {showSecurity && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-md" onClick={() => setShowSecurity(false)}>
+        <div className="bg-surface rounded-xl max-w-sm w-full border border-outline-variant overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="p-md bg-surface-container-low border-b border-outline-variant flex justify-between items-center">
+            <h3 className="font-label-lg font-bold text-on-surface">Seguridad</h3>
+            <button onClick={() => setShowSecurity(false)} className="text-on-surface-variant hover:text-primary"><span className="material-symbols-outlined">close</span></button>
+          </div>
+          <div className="p-lg flex flex-col gap-md">
+            <div>
+              <label className="text-label-sm font-bold text-on-surface-variant mb-xs block">Contraseña Actual</label>
+              <input type="password" placeholder="••••••••" className="w-full border border-outline-variant rounded-lg px-md py-sm bg-surface-container focus:outline-none focus:border-primary" />
+            </div>
+            <div>
+              <label className="text-label-sm font-bold text-on-surface-variant mb-xs block">Nueva Contraseña</label>
+              <input type="password" placeholder="••••••••" className="w-full border border-outline-variant rounded-lg px-md py-sm bg-surface-container focus:outline-none focus:border-primary" />
+            </div>
+            <button onClick={() => {
+              alert('Contraseña actualizada correctamente (Simulación)');
+              setShowSecurity(false);
+            }} className="mt-sm w-full py-sm bg-primary text-on-primary rounded-lg font-bold hover:bg-primary/90 transition-colors">Actualizar Contraseña</button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

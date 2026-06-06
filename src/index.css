@@ -13,6 +13,17 @@
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
+/* Modo Oscuro Global (Filtro Inteligente) */
+html.dark-theme body {
+    filter: invert(1) hue-rotate(180deg);
+    background-color: #030607;
+}
+html.dark-theme img, 
+html.dark-theme video, 
+html.dark-theme iframe {
+    filter: invert(1) hue-rotate(180deg);
+}
+
 .kanban-column {
     min-height: calc(100vh - 280px);
 }
