@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, AlertTriangle, CheckCircle, ArrowRight, PhoneCall, ShieldAlert, FileText, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-type Step = 'nlp_input' | 'nlp_processing' | 'ai_response' | 'filter_violence' | 'filter_penal' | 'branch_civil' | 'branch_family' | 'result_success' | 'result_rejected';
+type Step = 'nlp_input' | 'nlp_processing' | 'ai_response' | 'filter_violence' | 'filter_penal' | 'specific_question' | 'result_success' | 'result_rejected';
 
 interface TriajeWidgetProps {
   isOpen: boolean;
@@ -15,7 +15,7 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
   const [step, setStep] = useState<Step>('nlp_input');
   const [nlpText, setNlpText] = useState('');
   const [aiResponse, setAiResponse] = useState('');
-  const [detectedBranch, setDetectedBranch] = useState<'Familia' | 'Civil' | null>(null);
+  const [categoria, setCategoria] = useState<string>('OTRO_CIVIL');
 
   const [hasAiError, setHasAiError] = useState(false);
   const [isConciliable, setIsConciliable] = useState<boolean | null>(null);
@@ -53,19 +53,62 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
         if (data.isConciliable !== undefined) {
           setIsConciliable(data.isConciliable);
         }
+        if (data.categoria) {
+          setCategoria(data.categoria);
+        }
       }
       
-      if (nlpText.toLowerCase().includes('hijo') || nlpText.toLowerCase().includes('alimento') || nlpText.toLowerCase().includes('espos')) {
-        setDetectedBranch('Familia');
-      } else {
-        setDetectedBranch('Civil');
-      }
       setStep('ai_response');
     } catch (err) {
       console.error(err);
       setAiResponse(`❌ Error de conexión con la IA. Por favor, intente nuevamente.`);
       setHasAiError(true);
       setStep('ai_response');
+    }
+  };
+
+  const getDynamicQuestion = () => {
+    switch (categoria) {
+      case 'ALIMENTOS':
+        return {
+          title: 'Pensión de Alimentos',
+          question: '¿Tiene la Partida de Nacimiento del menor firmada por el padre/madre a quien va a invitar a conciliar?',
+          yesBtn: 'Sí, tengo la Partida',
+          noBtn: 'No está firmado / No lo ha reconocido',
+          noAction: () => alert('⚠️ Atención: Para conciliar alimentos, el menor debe estar reconocido legalmente. Si no lo está, deberá iniciar primero un proceso judicial de Filiación.')
+        };
+      case 'VISITAS_TENENCIA':
+        return {
+          title: 'Vínculo Legal',
+          question: '¿El menor de edad está reconocido legalmente por la persona a la que desea invitar (figura su firma en la Partida de Nacimiento)?',
+          yesBtn: 'Sí, está reconocido',
+          noBtn: 'No está reconocido',
+          noAction: () => alert('⚠️ Atención: Para conciliar régimen de visitas o tenencia, el menor debe estar reconocido legalmente.')
+        };
+      case 'DESALOJO':
+        return {
+          title: 'Evidencia de Arrendamiento',
+          question: '¿Cuenta con un contrato de alquiler (así esté vencido), carta notarial previa o recibos de pago que demuestren la relación de inquilino?',
+          yesBtn: 'Sí, tengo documentos',
+          noBtn: 'Fue de palabra / No tengo documentos',
+          noAction: () => setStep('result_success')
+        };
+      case 'DEUDAS':
+        return {
+          title: 'Evidencia de Deuda',
+          question: '¿Tiene algún documento que pruebe la deuda (contrato, letras de cambio, recibos, correos, transferencias bancarias o chats de WhatsApp)?',
+          yesBtn: 'Sí, tengo pruebas',
+          noBtn: 'No tengo pruebas, pero quiero intentar',
+          noAction: () => setStep('result_success')
+        };
+      default:
+        return {
+          title: 'Evidencia Documentaria',
+          question: '¿Cuenta con algún medio de prueba, documento, foto o conversación que sustente formalmente su reclamo?',
+          yesBtn: 'Sí, tengo pruebas',
+          noBtn: 'No tengo pruebas, pero quiero intentar',
+          noAction: () => setStep('result_success')
+        };
     }
   };
 
@@ -195,50 +238,30 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
               <button className="border border-outline-variant text-on-surface px-md py-sm rounded-lg font-label-md hover:bg-surface-container transition-colors" onClick={() => setStep('result_rejected')}>
                 Sí, es un delito
               </button>
-              <button className="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-all shadow-sm" onClick={() => setStep(detectedBranch === 'Familia' ? 'branch_family' : 'branch_civil')}>
+              <button className="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-all shadow-sm" onClick={() => setStep('specific_question')}>
                 No
               </button>
             </div>
           </motion.div>
         );
 
-      case 'branch_civil':
+      case 'specific_question':
+        const specificData = getDynamicQuestion();
         return (
-          <motion.div key="bc" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col h-full p-md overflow-y-auto">
+          <motion.div key="sq" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col h-full p-md overflow-y-auto">
             <div className="flex items-center gap-sm text-primary mb-md">
               <FileText size={20} />
-              <h2 className="font-headline-sm">Evidencia Civil</h2>
+              <h2 className="font-headline-sm">{specificData.title}</h2>
             </div>
             <p className="text-body-md mb-lg text-on-surface">
-              ¿Tiene algún documento que pruebe su reclamo o deuda (contrato, facturas, recibos, correos, WhatsApp)?
+              {specificData.question}
             </p>
             <div className="flex flex-col gap-sm mt-auto">
               <button className="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-all shadow-sm" onClick={() => setStep('result_success')}>
-                Sí, tengo pruebas
+                {specificData.yesBtn}
               </button>
-              <button className="border border-outline-variant text-on-surface px-md py-sm rounded-lg font-label-md hover:bg-surface-container transition-colors" onClick={() => setStep('result_success')}>
-                No tengo, quiero intentar
-              </button>
-            </div>
-          </motion.div>
-        );
-        
-      case 'branch_family':
-        return (
-          <motion.div key="bf" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col h-full p-md overflow-y-auto">
-            <div className="flex items-center gap-sm text-primary mb-md">
-              <FileText size={20} />
-              <h2 className="font-headline-sm">Vínculo Legal</h2>
-            </div>
-            <p className="text-body-md mb-lg text-on-surface">
-              ¿El menor de edad está reconocido legalmente por la persona a la que desea invitar (figura en la Partida de Nacimiento)?
-            </p>
-            <div className="flex flex-col gap-sm mt-auto">
-              <button className="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-all shadow-sm" onClick={() => setStep('result_success')}>
-                Sí, está reconocido
-              </button>
-              <button className="border border-outline-variant text-on-surface px-md py-sm rounded-lg font-label-md hover:bg-surface-container transition-colors" onClick={() => alert('Primero debe realizar un proceso judicial de Filiación o Reconocimiento de Paternidad.')}>
-                No está reconocido
+              <button className="border border-outline-variant text-on-surface px-md py-sm rounded-lg font-label-md hover:bg-surface-container transition-colors" onClick={specificData.noAction}>
+                {specificData.noBtn}
               </button>
             </div>
           </motion.div>
@@ -269,12 +292,12 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
             <CheckCircle size={48} className="text-green-600 mb-md" />
             <h2 className="text-green-600 font-headline-sm mb-sm">¡Materia Conciliable!</h2>
             <p className="text-body-sm mb-lg text-on-surface-variant">
-              Su caso clasifica como <strong>{detectedBranch}</strong> y cumple con los requisitos iniciales.
+              Su caso clasifica como materia conciliable (<strong>{categoria.replace('_', ' ')}</strong>) y cumple con los requisitos iniciales.
             </p>
             <div className="flex flex-col gap-sm w-full mt-auto">
               <button className="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-sm" onClick={() => {
                 onClose();
-                navigate('/admisibilidad', { state: { materia: detectedBranch, hechos: nlpText } });
+                navigate('/admisibilidad', { state: { materia: categoria, hechos: nlpText } });
               }}>
                 Continuar a Solicitud <ArrowRight size={16} />
               </button>

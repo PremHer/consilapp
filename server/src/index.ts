@@ -210,7 +210,8 @@ app.post('/api/chat', async (req, res) => {
     if (!process.env.GEMINI_API_KEY) {
       return res.json({ 
         response: "🤖 *Aviso de Sistema:* La Inteligencia Artificial no está conectada (Falta GEMINI_API_KEY en Railway). Configúrala para obtener respuestas legales reales. Por ahora te recomiendo llenar tu solicitud de conciliación directamente.",
-        isConciliable: true
+        isConciliable: true,
+        categoria: "OTRO_CIVIL"
       });
     }
 
@@ -227,6 +228,7 @@ app.post('/api/chat', async (req, res) => {
 Debes responder en JSON estricto con esta estructura:
 {
   "isConciliable": boolean, // true si es materia conciliable (familia, civil, deudas). false si es violencia familiar, agresion física, delitos penales o robo.
+  "categoria": "ALIMENTOS" | "VISITAS_TENENCIA" | "DESALOJO" | "DEUDAS" | "OTRO_CIVIL" | "OTRO_FAMILIA" | "NO_CONCILIABLE",
   "response": "Explicación muy breve y directa (máximo 100 palabras). Usa guiones simples (-) para listar requisitos. No uses Markdown."
 }`;
     
