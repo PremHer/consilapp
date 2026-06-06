@@ -137,7 +137,7 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
   doc.save(`Solicitud_Conciliacion_${expediente.numero || expediente.id.substring(0, 8)}.pdf`);
 };
 
-export const generateActaFinalPDF = (expediente: Expediente, resultado: string) => {
+export const generateActaFinalPDF = (expediente: Expediente, resultado: string, inasistente: string = 'INVITADO') => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const marginLeft = 20;
@@ -156,7 +156,7 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string) 
     'ACUERDO_TOTAL': 'ACTA DE CONCILIACIÓN CON ACUERDO TOTAL',
     'ACUERDO_PARCIAL': 'ACTA DE CONCILIACIÓN CON ACUERDO PARCIAL',
     'FALTA_ACUERDO': 'ACTA DE CONCILIACIÓN POR FALTA DE ACUERDO',
-    'INASISTENCIA_UNA_PARTE': 'ACTA DE CONCILIACIÓN POR INASISTENCIA DE UNA DE LAS PARTES',
+    'INASISTENCIA_UNA_PARTE': `ACTA DE CONCILIACIÓN POR INASISTENCIA DEL ${inasistente}`,
     'INASISTENCIA_AMBAS_PARTES': 'ACTA DE CONCILIACIÓN POR INASISTENCIA DE AMBAS PARTES',
   };
 
@@ -229,8 +229,15 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string) 
     doc.setFont('helvetica', 'normal');
     let constancia = '';
     if (resultado === 'FALTA_ACUERDO') constancia = 'Se deja constancia que las partes no llegaron a ningún acuerdo respecto a la materia en conflicto tras agotar el diálogo.';
-    if (resultado === 'INASISTENCIA_UNA_PARTE') constancia = 'Se deja constancia de la inasistencia de una de las partes a la sesión de conciliación programada.';
-    if (resultado === 'INASISTENCIA_AMBAS_PARTES') constancia = 'Se deja constancia de la inasistencia de ambas partes a la sesión de conciliación programada.';
+    if (resultado === 'INASISTENCIA_UNA_PARTE') {
+      const nombreAusente = inasistente === 'SOLICITANTE' ? expediente.solicitanteNom : expediente.invitadoNom;
+      const rolAusente = inasistente === 'SOLICITANTE' ? 'solicitante' : 'invitado(a)';
+      const nombrePresente = inasistente === 'SOLICITANTE' ? expediente.invitadoNom : expediente.solicitanteNom;
+      const rolPresente = inasistente === 'SOLICITANTE' ? 'invitado(a)' : 'solicitante';
+      
+      constancia = `Se deja constancia que a la Audiencia de Conciliación programada para la fecha y hora señalada, se hizo presente el ${rolPresente} don(ña) ${nombrePresente}; y no asistió el ${rolAusente} don(ña) ${nombreAusente}, a pesar de encontrarse válidamente notificado(a).`;
+    }
+    if (resultado === 'INASISTENCIA_AMBAS_PARTES') constancia = 'Se deja constancia de la inasistencia de ambas partes a la sesión de conciliación programada, a pesar de estar válidamente notificadas.';
     
     const constanciaLines = doc.splitTextToSize(constancia, pageWidth - (marginLeft * 2));
     doc.text(constanciaLines, marginLeft, cursorY);

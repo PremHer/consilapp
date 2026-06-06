@@ -13,6 +13,7 @@ const DashboardModule = () => {
   const updateExpedienteStatus = useStore((state) => state.updateExpedienteStatus);
   const [selectedExp, setSelectedExp] = React.useState<Expediente | null>(null);
   const [resultadoAudiencia, setResultadoAudiencia] = React.useState('ACUERDO_TOTAL');
+  const [inasistente, setInasistente] = React.useState('INVITADO');
   const navigate = useNavigate();
 
   // Función utilitaria para Semáforo de Plazos Legales
@@ -400,7 +401,7 @@ const DashboardModule = () => {
                 </div>
               )}
               
-              {selectedExp.estado === 'AUDIENCIA' && (
+              {selectedExp.estado === 'AUDIENCIA' && selectedExp.fechaAudiencia && (
                 <div className="border border-outline-variant rounded-lg overflow-hidden mt-md">
                   <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center gap-sm">
                     <span className="material-symbols-outlined text-secondary">gavel</span>
@@ -419,6 +420,20 @@ const DashboardModule = () => {
                       <option value="INASISTENCIA_UNA_PARTE">Inasistencia de una parte</option>
                       <option value="INASISTENCIA_AMBAS_PARTES">Inasistencia de ambas partes</option>
                     </select>
+
+                    {resultadoAudiencia === 'INASISTENCIA_UNA_PARTE' && (
+                      <div className="mt-xs">
+                        <label className="text-label-sm text-error font-bold mb-xs block">¿Quién faltó a la audiencia?</label>
+                        <select 
+                          value={inasistente}
+                          onChange={(e) => setInasistente(e.target.value)}
+                          className="bg-error-container/20 border border-error/50 rounded-lg p-sm text-body-md text-on-surface focus:border-error outline-none cursor-pointer w-full"
+                        >
+                          <option value="SOLICITANTE">El Solicitante ({selectedExp.solicitanteNom})</option>
+                          <option value="INVITADO">El Invitado ({selectedExp.invitadoNom})</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -436,11 +451,11 @@ const DashboardModule = () => {
                       Sala Virtual
                     </a>
                   )}
-                  {selectedExp.estado === 'AUDIENCIA' ? (
+                  {selectedExp.estado === 'AUDIENCIA' && selectedExp.fechaAudiencia ? (
                     <button 
                       onClick={() => {
                         import('../utils/pdfGenerator').then(module => {
-                          module.generateActaFinalPDF(selectedExp, resultadoAudiencia);
+                          module.generateActaFinalPDF(selectedExp, resultadoAudiencia, inasistente);
                         });
                       }}
                       className="px-md py-sm bg-primary text-on-primary rounded-lg font-label-lg hover:bg-primary/90 transition-colors flex items-center gap-xs shadow-sm"
