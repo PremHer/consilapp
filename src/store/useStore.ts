@@ -27,6 +27,10 @@ interface StoreState {
   addExpediente: (expediente: Partial<Expediente>) => Promise<void>;
   updateExpedienteStatus: (id: string, nuevoEstado: Expediente['estado']) => Promise<void>;
   agendarAudiencia: (id: string, fechaAudiencia: string) => Promise<void>;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  filterCategoria: string;
+  setFilterCategoria: (categoria: string) => void;
 }
 
 // Usar la URL de producción si existe, sino localhost
@@ -35,6 +39,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 export const useStore = create<StoreState>((set) => ({
   expedientes: [],
   isLoading: false,
+  searchQuery: '',
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  filterCategoria: 'Todas las materias',
+  setFilterCategoria: (categoria) => set({ filterCategoria: categoria }),
   
   fetchExpedientes: async () => {
     set({ isLoading: true });

@@ -6,10 +6,55 @@ import { useNavigate } from 'react-router-dom';
 
 const DashboardModule = () => {
   const expedientes = useStore((state) => state.expedientes);
+  const searchQuery = useStore((state) => state.searchQuery);
+  const filterCategoria = useStore((state) => state.filterCategoria);
+  const setFilterCategoria = useStore((state) => state.setFilterCategoria);
   const fetchExpedientes = useStore((state) => state.fetchExpedientes);
   const updateExpedienteStatus = useStore((state) => state.updateExpedienteStatus);
   const [selectedExp, setSelectedExp] = React.useState<Expediente | null>(null);
   const navigate = useNavigate();
+
+  // Filtrado de expedientes
+  const filteredExpedientes = React.useMemo(() => {
+    let filtered = expedientes;
+
+    if (filterCategoria && filterCategoria !== 'Todas las materias') {
+      filtered = filtered.filter(exp => exp.materia === filterCategoria || exp.materia.startsWith(filterCategoria));
+    }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(exp => 
+        (exp.numero && exp.numero.toLowerCase().includes(q)) ||
+        (exp.solicitanteNom && exp.solicitanteNom.toLowerCase().includes(q)) ||
+        (exp.invitadoNom && exp.invitadoNom.toLowerCase().includes(q)) ||
+        (exp.solicitanteDni && exp.solicitanteDni.includes(q)) ||
+        (exp.invitadoDni && exp.invitadoDni.includes(q))
+      );
+    }
+
+    return filtered;
+  }, [expedientes, filterCategoria, searchQuery]);
+
+  const exportToCSV = () => {
+    const headers = ['Nro Expediente', 'Estado', 'Materia', 'Solicitante', 'Invitado', 'Fecha Creacion'];
+    const rows = filteredExpedientes.map(exp => [
+      exp.numero || exp.id,
+      exp.estado,
+      exp.materia,
+      exp.solicitanteNom,
+      exp.invitadoNom,
+      new Date(exp.fechaCreacion).toLocaleString()
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `reporte_expedientes_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
 
   React.useEffect(() => {
     fetchExpedientes();
@@ -38,23 +83,31 @@ const DashboardModule = () => {
           <div>
             <h3 className="font-headline-sm text-headline-sm mb-xs text-on-surface">Tablero de Conciliación</h3>
             <div className="flex items-center gap-sm text-label-md text-on-surface-variant">
-              <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-primary"></span> {expedientes.filter(e => e.urgency === 'URGENTE').length} Urgentes</span>
+              <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-primary"></span> {filteredExpedientes.filter(e => e.urgency === 'URGENTE').length} Urgentes</span>
               <span className="mx-xs">|</span>
-              <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-secondary"></span> {expedientes.filter(e => e.estado !== 'AUDIENCIA').length} En Proceso</span>
+              <span className="flex items-center gap-xs"><span className="w-2 h-2 rounded-full bg-secondary"></span> {filteredExpedientes.filter(e => e.estado !== 'AUDIENCIA').length} En Proceso</span>
             </div>
           </div>
           <div className="flex items-center gap-md">
             <div className="relative">
               <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">filter_list</span>
-              <select className="bg-surface-container-lowest border border-outline-variant rounded-lg text-label-md py-sm pl-xl pr-md focus:border-primary focus:ring-1 focus:ring-primary appearance-none hover:bg-surface-container-low transition-colors cursor-pointer outline-none">
-                <option>Todas las materias</option>
-                <option>Civil</option>
-                <option>Familia</option>
-                <option>Comercial</option>
+              <select 
+                value={filterCategoria}
+                onChange={(e) => setFilterCategoria(e.target.value)}
+                className="bg-surface-container-lowest border border-outline-variant rounded-lg text-label-md py-sm pl-xl pr-md focus:border-primary focus:ring-1 focus:ring-primary appearance-none hover:bg-surface-container-low transition-colors cursor-pointer outline-none">
+                <option value="Todas las materias">Todas las materias</option>
+                <option value="CIVIL">Civil</option>
+                <option value="FAMILIA">Familia</option>
+                <option value="ALIMENTOS">Alimentos</option>
+                <option value="DESALOJO">Desalojos</option>
+                <option value="DEUDAS">Deudas</option>
+                <option value="LABORAL">Laboral</option>
               </select>
               <span className="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">arrow_drop_down</span>
             </div>
-            <button className="flex items-center gap-sm bg-surface-container-lowest border border-outline-variant px-md py-sm rounded-lg text-label-lg hover:border-primary hover:text-primary transition-all shadow-sm">
+            <button 
+              onClick={exportToCSV}
+              className="flex items-center gap-sm bg-surface-container-lowest border border-outline-variant px-md py-sm rounded-lg text-label-lg hover:border-primary hover:text-primary transition-all shadow-sm">
               <span className="material-symbols-outlined text-[18px]">download</span>
               Exportar
             </button>
@@ -70,13 +123,13 @@ const DashboardModule = () => {
               <div className="flex items-center gap-sm">
                 <span className="font-label-lg text-on-surface">RECIBIDO</span>
                 <span className="bg-surface-container-highest px-sm rounded-full text-label-sm">
-                  {expedientes.filter(e => e.estado === 'RECIBIDO').length.toString().padStart(2, '0')}
+                  {filteredExpedientes.filter(e => e.estado === 'RECIBIDO').length.toString().padStart(2, '0')}
                 </span>
               </div>
               <button className="text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined">more_vert</span></button>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
-              {expedientes.filter(e => e.estado === 'RECIBIDO').map((exp, i) => (
+              {filteredExpedientes.filter(e => e.estado === 'RECIBIDO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm hover:border-primary transition-all cursor-grab active:cursor-grabbing group">
@@ -111,12 +164,12 @@ const DashboardModule = () => {
               <div className="flex items-center gap-sm">
                 <span className="font-label-lg text-on-surface">CALIFICADO</span>
                 <span className="bg-secondary-container px-sm rounded-full text-label-sm">
-                  {expedientes.filter(e => e.estado === 'CALIFICADO').length.toString().padStart(2, '0')}
+                  {filteredExpedientes.filter(e => e.estado === 'CALIFICADO').length.toString().padStart(2, '0')}
                 </span>
               </div>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
-              {expedientes.filter(e => e.estado === 'CALIFICADO').map((exp, i) => (
+              {filteredExpedientes.filter(e => e.estado === 'CALIFICADO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
                   className={`bg-surface-container-lowest p-md border-l-4 border-l-secondary border-t border-r border-b border-outline-variant rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer`}>
@@ -149,12 +202,12 @@ const DashboardModule = () => {
               <div className="flex items-center gap-sm">
                 <span className="font-label-lg text-on-surface">INVITACIONES</span>
                 <span className="bg-surface-container-highest px-sm rounded-full text-label-sm">
-                  {expedientes.filter(e => e.estado === 'INVITACIONES').length.toString().padStart(2, '0')}
+                  {filteredExpedientes.filter(e => e.estado === 'INVITACIONES').length.toString().padStart(2, '0')}
                 </span>
               </div>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
-              {expedientes.filter(e => e.estado === 'INVITACIONES').map((exp, i) => (
+              {filteredExpedientes.filter(e => e.estado === 'INVITACIONES').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm hover:border-primary transition-all cursor-pointer">
@@ -189,12 +242,12 @@ const DashboardModule = () => {
               <div className="flex items-center gap-sm">
                 <span className="font-label-lg text-on-surface">AUDIENCIA</span>
                 <span className="bg-primary-container/20 text-primary px-sm rounded-full text-label-sm">
-                  {expedientes.filter(e => e.estado === 'AUDIENCIA').length.toString().padStart(2, '0')}
+                  {filteredExpedientes.filter(e => e.estado === 'AUDIENCIA').length.toString().padStart(2, '0')}
                 </span>
               </div>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
-              {expedientes.filter(e => e.estado === 'AUDIENCIA').map((exp, i) => (
+              {filteredExpedientes.filter(e => e.estado === 'AUDIENCIA').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm ring-1 ring-primary/5 hover:border-primary transition-all cursor-pointer">

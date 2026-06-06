@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginModule from './components/LoginModule';
 import SeguimientoModule from './components/SeguimientoModule';
 import { useAuthStore } from './store/useAuthStore';
+import { useStore } from './store/useStore';
 
 // Sidebar: Solo visible en rutas privadas
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) => {
@@ -99,7 +100,13 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
         {!isPublic && (
           <div className="relative w-full hidden sm:block">
             <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-            <input className="w-full pl-xl pr-md py-sm bg-surface-container border border-outline-variant rounded-full text-body-md focus:outline-none focus:border-primary transition-colors" placeholder="Buscar expediente..." type="text" />
+            <input 
+              className="w-full pl-xl pr-md py-sm bg-surface-container border border-outline-variant rounded-full text-body-md focus:outline-none focus:border-primary transition-colors" 
+              placeholder="Buscar expediente, DNI o nombre..." 
+              type="text" 
+              value={useStore((state) => state.searchQuery)}
+              onChange={(e) => useStore.getState().setSearchQuery(e.target.value)}
+            />
           </div>
         )}
       </div>

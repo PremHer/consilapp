@@ -119,9 +119,12 @@ app.post('/api/expedientes', async (req, res) => {
   try {
     const { materia, solicitanteNom, solicitanteDni, invitadoNom, invitadoDni, invitadoCelular, detalles, solicitanteEmail, solicitanteCelular, invitadoDireccion } = req.body;
     
-    // Generar un número de expediente tipo #2024-XXX
-    const count = await prisma.expediente.count();
-    const numero = `#2024-${(count + 1).toString().padStart(3, '0')}`;
+    // Generar un número de expediente tipo #2026-XXX
+    const currentYear = new Date().getFullYear();
+    const count = await prisma.expediente.count({
+      where: { numero: { startsWith: `#${currentYear}-` } }
+    });
+    const numero = `#${currentYear}-${(count + 1).toString().padStart(3, '0')}`;
 
     const expediente = await prisma.expediente.create({
       data: {
