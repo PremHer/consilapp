@@ -80,10 +80,10 @@ const AdmisibilidadModule = () => {
           const res = await fetch(`${API_URL}/reniec/ruc/${dniContraparte}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.razonSocial) {
-              setContraparte(data.razonSocial);
+            if (data.nombre) {
+              setContraparte(data.nombre);
               if (data.direccion) {
-                setInvitadoDireccion(`${data.direccion}, ${data.distrito}, ${data.provincia}`);
+                setInvitadoDireccion(`${data.direccion.trim()}, ${data.distrito}, ${data.provincia}`);
               }
             }
           }
