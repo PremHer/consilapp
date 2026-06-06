@@ -61,12 +61,15 @@ export default {
         "margin-mobile": "16px",
         "xs": "4px",
         "unit": "4px",
-        "lg": "24px",
         "sm": "8px",
+        "md": "16px",
+        "lg": "24px",
         "xl": "48px",
+        "2xl": "64px",
+        "3xl": "96px",
+        "4xl": "128px",
         "margin-desktop": "64px",
-        "gutter": "24px",
-        "md": "16px"
+        "gutter": "24px"
       },
       fontFamily: {
         "headline-md": ["Inter"],
