@@ -25,21 +25,32 @@ const AdmisibilidadModule = () => {
   const [materia, setMateria] = useState(materiaPreseleccionada);
   const [detalles, setDetalles] = useState(hechosPreseleccionados);
   
-  const [files, setFiles] = useState<{ dni: File | null, voucher: File | null, pruebas: File[] }>({
+  const [files, setFiles] = useState<{ dni: File | null, voucher: File | null, especifico: File | null, pruebas: File[] }>({
     dni: null,
     voucher: null,
+    especifico: null,
     pruebas: []
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'dni' | 'voucher' | 'pruebas') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'dni' | 'voucher' | 'especifico' | 'pruebas') => {
     if (e.target.files && e.target.files.length > 0) {
       if (type === 'pruebas') {
         setFiles(prev => ({ ...prev, pruebas: [...prev.pruebas, ...Array.from(e.target.files!)] }));
       } else {
         setFiles(prev => ({ ...prev, [type]: e.target.files![0] }));
       }
+    }
+  };
+
+  const getSpecificDocInfo = () => {
+    switch(materia) {
+      case 'ALIMENTOS': return { title: 'Partida de Nacimiento', desc: 'Firmada por el demandado (Requerido)' };
+      case 'VISITAS_TENENCIA': return { title: 'Partida de Nacimiento', desc: 'Firmada por el demandado (Requerido)' };
+      case 'DESALOJO': return { title: 'Contrato o Copia Literal', desc: 'Sustento de propiedad o arriendo' };
+      case 'DEUDAS': return { title: 'Sustento de Deuda', desc: 'Letra de cambio, recibo, transferencias' };
+      default: return { title: 'Documento Probatorio', desc: 'Documento principal de prueba' };
     }
   };
 
@@ -114,8 +125,12 @@ const AdmisibilidadModule = () => {
             <div>
               <label className="block text-label-lg font-bold text-on-surface mb-xs">Materia Conciliable</label>
               <select value={materia} onChange={e => setMateria(e.target.value)} className="w-full p-sm bg-surface border border-outline-variant rounded-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
-                <option value="CIVIL">Civil (Deudas, Desalojos, Incumplimientos)</option>
-                <option value="FAMILIA">Familia (Alimentos, Visitas, Tenencia)</option>
+                <option value="ALIMENTOS">Familia - Pensión de Alimentos</option>
+                <option value="VISITAS_TENENCIA">Familia - Visitas y Tenencia</option>
+                <option value="DESALOJO">Civil - Desalojos</option>
+                <option value="DEUDAS">Civil - Cobro de Deudas</option>
+                <option value="CIVIL">Civil - Otros (Incumplimientos, etc)</option>
+                <option value="FAMILIA">Familia - Otros</option>
                 <option value="LABORAL">Laboral</option>
                 <option value="CONTRATACIONES">Contrataciones con el Estado</option>
               </select>
@@ -196,7 +211,7 @@ const AdmisibilidadModule = () => {
           </div>
           <p className="text-label-md text-on-surface-variant mb-lg">Formatos aceptados: JPG, PNG, PDF (Máx. 5MB por archivo).</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
             {/* DNI Upload */}
             <div className="border-2 border-dashed border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center text-center hover:bg-surface-container-low transition-colors relative bg-surface">
               <input type="file" accept="image/*,.pdf" onChange={e => handleFileChange(e, 'dni')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
@@ -209,8 +224,26 @@ const AdmisibilidadModule = () => {
               ) : (
                 <>
                   <UploadCloud size={40} className="text-on-surface-variant mb-sm" />
-                  <span className="font-bold text-on-surface text-label-lg">Copia de DNI (Requerido)</span>
-                  <span className="text-label-sm text-on-surface-variant mt-xs">Click o arrastrar archivo</span>
+                  <span className="font-bold text-on-surface text-label-lg">Copia de DNI</span>
+                  <span className="text-label-sm text-on-surface-variant mt-xs">Requerido por Ley</span>
+                </>
+              )}
+            </div>
+
+            {/* Documento Específico Dinámico */}
+            <div className="border-2 border-dashed border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center text-center hover:bg-surface-container-low transition-colors relative bg-surface">
+              <input type="file" accept="image/*,.pdf" onChange={e => handleFileChange(e, 'especifico')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+              {files.especifico ? (
+                <>
+                  <FileCheck size={40} className="text-primary mb-sm" />
+                  <span className="font-bold text-on-surface text-label-lg truncate max-w-[200px]">{files.especifico.name}</span>
+                  <span className="text-label-sm text-success font-bold mt-xs">Cargado exitosamente</span>
+                </>
+              ) : (
+                <>
+                  <FileText size={40} className="text-on-surface-variant mb-sm" />
+                  <span className="font-bold text-on-surface text-label-lg">{getSpecificDocInfo().title}</span>
+                  <span className="text-label-sm text-on-surface-variant mt-xs">{getSpecificDocInfo().desc}</span>
                 </>
               )}
             </div>
@@ -227,8 +260,8 @@ const AdmisibilidadModule = () => {
               ) : (
                 <>
                   <UploadCloud size={40} className="text-on-surface-variant mb-sm" />
-                  <span className="font-bold text-on-surface text-label-lg">Voucher de Pago Arancel</span>
-                  <span className="text-label-sm text-on-surface-variant mt-xs">Captura de Yape/Plin o transferencia</span>
+                  <span className="font-bold text-on-surface text-label-lg">Voucher de Pago</span>
+                  <span className="text-label-sm text-on-surface-variant mt-xs">Captura de Yape o Plin</span>
                 </>
               )}
             </div>

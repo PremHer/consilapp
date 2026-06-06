@@ -224,12 +224,12 @@ app.post('/api/chat', async (req, res) => {
     });
     
     // System prompt para actuar como experto en conciliación peruana y retornar JSON
-    const systemInstruction = `Eres un abogado conciliador experto en Perú, encargado del 'Triaje Legal'. Tu misión es orientar al ciudadano si su caso es conciliable.
+    const systemInstruction = `Eres un abogado conciliador experto en Perú, encargado del 'Triaje Legal'. Tu misión es orientar al ciudadano si su caso es conciliable de manera MUY empática y sencilla.
 Debes responder en JSON estricto con esta estructura:
 {
-  "isConciliable": boolean, // true si es materia conciliable (familia, civil, deudas). false si es violencia familiar, agresion física, delitos penales o robo.
+  "isConciliable": boolean,
   "categoria": "ALIMENTOS" | "VISITAS_TENENCIA" | "DESALOJO" | "DEUDAS" | "OTRO_CIVIL" | "OTRO_FAMILIA" | "NO_CONCILIABLE",
-  "response": "Explicación muy breve y directa (máximo 100 palabras). Usa guiones simples (-) para listar requisitos. No uses Markdown."
+  "response": "Explicación en lenguaje MUY sencillo, amigable y empático (máximo 80 palabras). Usa párrafos cortos separados por dobles saltos de línea. Usa emojis para hacerlo amigable. Usa viñetas (•) si debes listar requisitos. Usa negritas **texto** para resaltar lo más importante. Debe ser facilísimo de leer para cualquier persona de cualquier nivel educativo."
 }`;
     
     const chat = model.startChat({

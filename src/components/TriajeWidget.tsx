@@ -67,6 +67,16 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
     }
   };
 
+  const renderFormattedText = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="font-bold text-primary">{part.slice(2, -2)}</strong>;
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
   const getDynamicQuestion = () => {
     switch (categoria) {
       case 'ALIMENTOS':
@@ -160,7 +170,7 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
             <div className="flex-1 overflow-y-auto p-md">
               <div className={`p-md rounded-lg mb-md border whitespace-pre-wrap text-body-md text-on-surface leading-relaxed relative ${hasAiError || isConciliable === false ? "bg-error-container/20 border-error/30" : "bg-primary-container/20 border-primary/20"}`}>
                 <div className={`absolute w-3 h-3 rotate-45 -bottom-1.5 left-6 ${hasAiError || isConciliable === false ? "bg-error-container/20 border-r border-b border-error/30" : "bg-primary-container/20 border-r border-b border-primary/20"}`}></div>
-                {aiResponse}
+                {renderFormattedText(aiResponse)}
               </div>
 
               {!hasAiError ? (
