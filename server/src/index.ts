@@ -245,11 +245,38 @@ Debes responder en JSON estricto con esta estructura:
     
     res.json({ 
       response: data.response, 
-      isConciliable: data.isConciliable 
+      isConciliable: data.isConciliable,
+      categoria: data.categoria
     });
   } catch (error: any) {
     console.error("Error en AI Chat:", error);
     res.status(500).json({ error: error?.message || 'Error procesando el chat' });
+  }
+});
+
+// Endpoint proxy para RENIEC (DNI)
+app.get('/api/reniec/dni/:numero', async (req, res) => {
+  try {
+    const { numero } = req.params;
+    const response = await fetch(`https://api.apis.net.pe/v1/dni?numero=${numero}`);
+    if (!response.ok) throw new Error('DNI no encontrado');
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(404).json({ error: 'No se encontró el DNI' });
+  }
+});
+
+// Endpoint proxy para SUNAT (RUC)
+app.get('/api/reniec/ruc/:numero', async (req, res) => {
+  try {
+    const { numero } = req.params;
+    const response = await fetch(`https://api.apis.net.pe/v1/ruc?numero=${numero}`);
+    if (!response.ok) throw new Error('RUC no encontrado');
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(404).json({ error: 'No se encontró el RUC' });
   }
 });
 

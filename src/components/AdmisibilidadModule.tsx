@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UploadCloud, FileCheck, CheckCircle, ArrowRight, User, Users, FileText } from 'lucide-react';
@@ -33,6 +33,67 @@ const AdmisibilidadModule = () => {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Auto-completar DNI Solicitante
+  useEffect(() => {
+    if (dniSolicitante.length === 8) {
+      const fetchDni = async () => {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+          const res = await fetch(`${API_URL}/reniec/dni/${dniSolicitante}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.nombres) {
+              setNombres(`${data.nombres} ${data.apellidoPaterno} ${data.apellidoMaterno}`);
+            }
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchDni();
+    }
+  }, [dniSolicitante]);
+
+  // Auto-completar DNI/RUC Invitado
+  useEffect(() => {
+    if (dniContraparte.length === 8) {
+      const fetchDni = async () => {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+          const res = await fetch(`${API_URL}/reniec/dni/${dniContraparte}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.nombres) {
+              setContraparte(`${data.nombres} ${data.apellidoPaterno} ${data.apellidoMaterno}`);
+            }
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchDni();
+    } else if (dniContraparte.length === 11) {
+      const fetchRuc = async () => {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+          const res = await fetch(`${API_URL}/reniec/ruc/${dniContraparte}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.razonSocial) {
+              setContraparte(data.razonSocial);
+              if (data.direccion) {
+                setInvitadoDireccion(`${data.direccion}, ${data.distrito}, ${data.provincia}`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchRuc();
+    }
+  }, [dniContraparte]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'dni' | 'voucher' | 'especifico' | 'pruebas') => {
     if (e.target.files && e.target.files.length > 0) {
