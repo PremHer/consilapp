@@ -4,7 +4,7 @@ import TriajeWidget from './TriajeWidget';
 import { motion } from 'framer-motion';
 
 const DiagnosticModule = () => {
-  const [isTriajeOpen, setIsTriajeOpen] = useState(false);
+  const [isTriajeOpen, setIsTriajeOpen] = useState(true);
 
   return (
     <div className="bg-surface relative min-h-screen">
@@ -102,8 +102,36 @@ const DiagnosticModule = () => {
         </div>
       </div>
       
-      {/* Footer Padding for FAB */}
-      <div className="h-32 bg-surface-container"></div>
+      {/* Footer / Quiénes Somos */}
+      <footer className="bg-inverse-surface text-inverse-on-surface py-2xl px-lg relative overflow-hidden">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-2xl">
+          <div>
+            <h3 className="font-headline-sm text-primary-fixed mb-md flex items-center gap-sm">
+              <ShieldAlert size={24} /> BRIDGELAW
+            </h3>
+            <p className="text-body-lg text-surface-container-highest max-w-md">
+              <strong>Quiénes Somos:</strong> Somos un centro de conciliación extrajudicial moderno, comprometido con la resolución pacífica de conflictos, utilizando tecnología e inteligencia artificial para agilizar y democratizar el acceso a la justicia.
+            </p>
+          </div>
+          <div className="md:text-right flex flex-col justify-center">
+            <p className="text-body-md text-surface-variant mb-xs">
+              Plataforma desarrollada por:
+            </p>
+            <p className="font-headline-sm text-white mb-xs">
+              Prem Hernandez
+            </p>
+            <p className="text-body-md text-primary-fixed-dim">
+              Analista de Sistemas | Empresa CCRED
+            </p>
+            <p className="text-body-sm text-outline-variant mt-lg">
+              © {new Date().getFullYear()} Todos los derechos reservados.
+            </p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Padding extra para que el footer no sea tapado por el widget flotante en móviles */}
+      <div className="h-24 bg-inverse-surface md:hidden"></div>
 
       {/* FAB (Floating Action Button) para abrir Triaje */}
       {!isTriajeOpen && (
