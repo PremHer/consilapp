@@ -83,6 +83,9 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
 };
 
 const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) => void, isPublic?: boolean }) => {
+  const [showNotifications, setShowNotifications] = React.useState(false);
+  const [showSettings, setShowSettings] = React.useState(false);
+
   return (
     <header className="flex justify-between items-center px-md md:px-lg py-sm h-16 w-full bg-surface-container-lowest border-b border-outline-variant shadow-sm transition-all duration-200 z-30 sticky top-0">
       <div className="flex items-center gap-md flex-1 max-w-xl">
@@ -111,16 +114,68 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
         )}
       </div>
       {!isPublic && (
-        <div className="flex items-center gap-sm md:gap-md ml-auto">
+        <div className="flex items-center gap-sm md:gap-md ml-auto relative">
           <button className="sm:hidden p-sm text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all">
             <span className="material-symbols-outlined">search</span>
           </button>
-          <button className="p-sm text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <button className="p-sm text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all">
-            <span className="material-symbols-outlined">settings</span>
-          </button>
+          
+          <div className="relative">
+            <button 
+              onClick={() => { setShowNotifications(!showNotifications); setShowSettings(false); }}
+              className={`p-sm rounded-full transition-all ${showNotifications ? 'bg-primary-container text-primary' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
+            >
+              <span className="material-symbols-outlined">notifications</span>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+            </button>
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 bg-surface rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50">
+                <div className="p-md border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+                  <h3 className="font-label-lg font-bold">Notificaciones</h3>
+                  <button className="text-primary text-label-sm hover:underline">Marcar leídas</button>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  <div className="p-md border-b border-outline-variant hover:bg-surface-container-lowest transition-colors cursor-pointer">
+                    <p className="text-label-md font-bold text-on-surface">Nuevo expediente ingresado</p>
+                    <p className="text-body-sm text-on-surface-variant">Se ha registrado el exp. #2026-003</p>
+                    <p className="text-[10px] text-primary mt-xs">Hace 5 min</p>
+                  </div>
+                  <div className="p-md hover:bg-surface-container-lowest transition-colors cursor-pointer">
+                    <p className="text-label-md font-bold text-on-surface">Audiencia próxima</p>
+                    <p className="text-body-sm text-on-surface-variant">Audiencia programada para hoy a las 3:00 PM</p>
+                    <p className="text-[10px] text-primary mt-xs">Hace 1 hora</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button 
+              onClick={() => { setShowSettings(!showSettings); setShowNotifications(false); }}
+              className={`p-sm rounded-full transition-all ${showSettings ? 'bg-primary-container text-primary' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
+            >
+              <span className="material-symbols-outlined">settings</span>
+            </button>
+            {showSettings && (
+              <div className="absolute right-0 mt-2 w-64 bg-surface rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50">
+                <div className="p-md border-b border-outline-variant bg-surface-container-low">
+                  <h3 className="font-label-lg font-bold">Configuración</h3>
+                </div>
+                <div className="p-sm flex flex-col">
+                  <button className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
+                    <span className="material-symbols-outlined text-[20px]">person</span> Perfil
+                  </button>
+                  <button className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
+                    <span className="material-symbols-outlined text-[20px]">dark_mode</span> Tema Oscuro (Próximamente)
+                  </button>
+                  <button className="flex items-center gap-md p-sm hover:bg-surface-container-highest rounded-lg transition-colors text-left w-full text-label-md">
+                    <span className="material-symbols-outlined text-[20px]">security</span> Seguridad
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       )}
       {isPublic && (
