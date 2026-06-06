@@ -12,7 +12,21 @@ const DashboardModule = () => {
   const fetchExpedientes = useStore((state) => state.fetchExpedientes);
   const updateExpedienteStatus = useStore((state) => state.updateExpedienteStatus);
   const [selectedExp, setSelectedExp] = React.useState<Expediente | null>(null);
+  const [resultadoAudiencia, setResultadoAudiencia] = React.useState('ACUERDO_TOTAL');
   const navigate = useNavigate();
+
+  // Función utilitaria para Semáforo de Plazos Legales
+  const getSemaforoStyle = (fechaCreacion: string, estado: string) => {
+    if (estado !== 'RECIBIDO') return ''; // MVP: Evaluamos la calificación inicial
+    const hoursElapsed = (new Date().getTime() - new Date(fechaCreacion).getTime()) / (1000 * 60 * 60);
+    
+    // Para demostración, vamos a simular horas usando minutos si es reciente,
+    // o simplemente aplicar la lógica real (Verde < 24h, Amarillo 24h-48h, Rojo > 48h)
+    // Usaremos valores arbitrarios de Tailwind
+    if (hoursElapsed < 24) return 'border-l-4 border-l-[#4caf50]'; // Verde
+    if (hoursElapsed < 48) return 'border-l-4 border-l-[#ffb300]'; // Amarillo
+    return 'border-l-4 border-l-error ring-1 ring-error/20'; // Rojo
+  };
 
   // Filtrado de expedientes
   const filteredExpedientes = React.useMemo(() => {
@@ -132,7 +146,7 @@ const DashboardModule = () => {
               {filteredExpedientes.filter(e => e.estado === 'RECIBIDO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
-                  className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm hover:border-primary transition-all cursor-grab active:cursor-grabbing group">
+                  className={`bg-surface-container-lowest p-md border-t border-r border-b border-outline-variant rounded-lg shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group ${getSemaforoStyle(exp.fechaCreacion, exp.estado)}`}>
                   <div className="flex justify-between items-start mb-sm">
                     <span className="text-label-sm text-primary font-bold">{exp.numero || exp.id.substring(0,8)}</span>
                     <span className="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">drag_indicator</span>
@@ -386,6 +400,29 @@ const DashboardModule = () => {
                 </div>
               )}
               
+              {selectedExp.estado === 'AUDIENCIA' && (
+                <div className="border border-outline-variant rounded-lg overflow-hidden mt-md">
+                  <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center gap-sm">
+                    <span className="material-symbols-outlined text-secondary">gavel</span>
+                    <h4 className="font-label-lg text-secondary">Finalizar Caso</h4>
+                  </div>
+                  <div className="p-md bg-surface-container-lowest flex flex-col gap-sm">
+                    <label className="text-label-sm text-on-surface-variant font-bold">Resultado de la Audiencia</label>
+                    <select 
+                      value={resultadoAudiencia}
+                      onChange={(e) => setResultadoAudiencia(e.target.value)}
+                      className="bg-surface border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary outline-none cursor-pointer"
+                    >
+                      <option value="ACUERDO_TOTAL">Acuerdo Total</option>
+                      <option value="ACUERDO_PARCIAL">Acuerdo Parcial</option>
+                      <option value="FALTA_ACUERDO">Falta de Acuerdo</option>
+                      <option value="INASISTENCIA_UNA_PARTE">Inasistencia de una parte</option>
+                      <option value="INASISTENCIA_AMBAS_PARTES">Inasistencia de ambas partes</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between items-center pt-sm mt-md">
                 <div className="flex gap-sm">
                   {selectedExp.enlaceSala && (
@@ -399,17 +436,31 @@ const DashboardModule = () => {
                       Sala Virtual
                     </a>
                   )}
-                  <button 
-                    onClick={() => {
-                      import('../utils/pdfGenerator').then(module => {
-                        module.generateSolicitudPDF(selectedExp);
-                      });
-                    }}
-                    className="px-md py-sm bg-surface-container-high text-on-surface rounded-lg font-label-lg hover:bg-surface-container-highest transition-colors flex items-center gap-xs border border-outline-variant"
-                  >
-                    <span className="material-symbols-outlined">picture_as_pdf</span>
-                    Descargar PDF
-                  </button>
+                  {selectedExp.estado === 'AUDIENCIA' ? (
+                    <button 
+                      onClick={() => {
+                        import('../utils/pdfGenerator').then(module => {
+                          module.generateActaFinalPDF(selectedExp, resultadoAudiencia);
+                        });
+                      }}
+                      className="px-md py-sm bg-primary text-on-primary rounded-lg font-label-lg hover:bg-primary/90 transition-colors flex items-center gap-xs shadow-sm"
+                    >
+                      <span className="material-symbols-outlined">description</span>
+                      Generar Acta Final
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        import('../utils/pdfGenerator').then(module => {
+                          module.generateSolicitudPDF(selectedExp);
+                        });
+                      }}
+                      className="px-md py-sm bg-surface-container-high text-on-surface rounded-lg font-label-lg hover:bg-surface-container-highest transition-colors flex items-center gap-xs border border-outline-variant"
+                    >
+                      <span className="material-symbols-outlined">picture_as_pdf</span>
+                      Descargar PDF
+                    </button>
+                  )}
                 </div>
                 <button 
                   onClick={() => setSelectedExp(null)} 
