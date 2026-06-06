@@ -190,10 +190,34 @@ app.put('/api/expedientes/:id/audiencia', async (req, res) => {
     const { id } = req.params;
     const { fechaAudiencia } = req.body;
     
+    // Obtener el expediente para generar un link único
+    const expExistente = await prisma.expediente.findUnique({ where: { id } });
+    if (!expExistente) return res.status(404).json({ error: 'Expediente no encontrado' });
+
+    // Link automático de Jitsi
+    const enlaceSala = `https://meet.jit.si/Bridgelaw-${expExistente.numero.replace('#', '')}-${Date.now().toString().slice(-4)}`;
+
     const expediente = await prisma.expediente.update({
       where: { id },
-      data: { fechaAudiencia: new Date(fechaAudiencia) }
+      data: { 
+        fechaAudiencia: new Date(fechaAudiencia),
+        enlaceSala,
+        estado: 'AUDIENCIA'
+      }
     });
+    
+    // Notificar por WhatsApp
+    if (expediente.invitadoCelular) {
+      const fecha = new Date(fechaAudiencia).toLocaleString('es-PE', { timeZone: 'America/Lima' });
+      const msj = `🏛️ *BRIDGELAW - CITA PROGRAMADA*\n\nEstimado(a) *${expediente.invitadoNom}*,\n\nSe ha programado una *Audiencia de Conciliación Virtual* obligatoria.\n\n📅 *Fecha y Hora:* ${fecha}\n🔗 *Enlace de Sala Virtual:* ${enlaceSala}\n\n⚠️ *Importante:* Ingrese al enlace 5 minutos antes. La inasistencia injustificada puede acarrear penalidades legales según la ley de conciliación.\n\nAtentamente,\n*Centro de Conciliación Bridgelaw*`;
+      await sendWhatsAppMessage(expediente.invitadoCelular, msj);
+    }
+
+    if (expediente.solicitanteCelular) {
+      const fecha = new Date(fechaAudiencia).toLocaleString('es-PE', { timeZone: 'America/Lima' });
+      const msj = `🏛️ *BRIDGELAW - CITA PROGRAMADA*\n\nEstimado(a) *${expediente.solicitanteNom}*,\n\nSe ha programado su *Audiencia de Conciliación Virtual*.\n\n📅 *Fecha y Hora:* ${fecha}\n🔗 *Enlace de Sala Virtual:* ${enlaceSala}\n\n⚠️ *Importante:* Ingrese al enlace 5 minutos antes.\n\nAtentamente,\n*Centro de Conciliación Bridgelaw*`;
+      await sendWhatsAppMessage(expediente.solicitanteCelular, msj);
+    }
     
     // Emitir evento en tiempo real
     io.emit('expediente_actualizado', expediente);

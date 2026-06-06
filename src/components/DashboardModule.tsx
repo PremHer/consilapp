@@ -386,7 +386,31 @@ const DashboardModule = () => {
                 </div>
               )}
               
-              <div className="flex justify-end pt-sm">
+              <div className="flex justify-between items-center pt-sm mt-md">
+                <div className="flex gap-sm">
+                  {selectedExp.enlaceSala && (
+                    <a 
+                      href={selectedExp.enlaceSala}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-md py-sm bg-secondary text-on-secondary rounded-lg font-label-lg hover:bg-secondary/90 transition-colors shadow-sm flex items-center gap-xs"
+                    >
+                      <span className="material-symbols-outlined">video_camera_front</span>
+                      Sala Virtual
+                    </a>
+                  )}
+                  <button 
+                    onClick={() => {
+                      import('../utils/pdfGenerator').then(module => {
+                        module.generateSolicitudPDF(selectedExp);
+                      });
+                    }}
+                    className="px-md py-sm bg-surface-container-high text-on-surface rounded-lg font-label-lg hover:bg-surface-container-highest transition-colors flex items-center gap-xs border border-outline-variant"
+                  >
+                    <span className="material-symbols-outlined">picture_as_pdf</span>
+                    Descargar PDF
+                  </button>
+                </div>
                 <button 
                   onClick={() => setSelectedExp(null)} 
                   className="px-lg py-sm bg-primary text-on-primary rounded-lg font-label-lg hover:bg-primary/90 transition-colors"

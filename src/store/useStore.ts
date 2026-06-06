@@ -17,6 +17,7 @@ export interface Expediente {
   estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA';
   urgency?: 'NORMAL' | 'URGENTE';
   fechaAudiencia?: string;
+  enlaceSala?: string;
   fechaCreacion: string;
 }
 
