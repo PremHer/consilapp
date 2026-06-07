@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, AlertTriangle, CheckCircle, ArrowRight, PhoneCall, ShieldAlert, FileText, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Spline from '@splinetool/react-spline';
 
 type Step = 'nlp_input' | 'nlp_processing' | 'ai_response' | 'filter_violence' | 'filter_penal' | 'specific_question' | 'result_success' | 'result_rejected';
 
@@ -332,8 +333,17 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
             className="fixed bottom-24 right-4 md:right-8 w-[calc(100vw-32px)] md:w-[380px] h-[550px] max-h-[75vh] bg-surface border border-outline-variant rounded-2xl shadow-xl z-50 flex flex-col overflow-visible"
             ref={widgetRef}
           >
+            {/* 3D Spline Avatar Flotante */}
+            <div className="absolute -top-32 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+              <div className={`w-40 h-40 rounded-full border-4 border-surface shadow-[0_4px_15px_rgba(0,0,0,0.15)] overflow-hidden bg-surface-container-lowest flex items-center justify-center animate-levitate pointer-events-auto ${step === 'nlp_processing' ? 'animate-glow' : ''}`}>
+                 <div className="w-full h-full scale-[1.2] translate-y-[10%]">
+                    <Spline scene="https://prod.spline.design/SdjSMisPYtEGb-fW/scene.splinecode" />
+                 </div>
+              </div>
+            </div>
+
             {/* Header del Widget */}
-            <div className="bg-primary text-on-primary p-md pt-10 flex justify-between items-center shadow-sm z-10 rounded-t-2xl">
+            <div className="bg-primary text-on-primary p-md pt-12 flex justify-between items-center shadow-sm z-10 rounded-t-2xl">
               <div className="flex items-center gap-sm">
                 <ShieldAlert size={20} className="text-primary-container" />
                 <span className="font-headline-sm">Triaje Legal IA</span>
