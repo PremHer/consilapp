@@ -333,8 +333,10 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
             ref={widgetRef}
           >
             {/* 3D Avatar Flotante */}
-            <div className={`absolute -top-14 left-1/2 -translate-x-1/2 w-28 h-28 rounded-full border-4 border-surface shadow-[0_4px_15px_rgba(0,0,0,0.15)] overflow-hidden bg-surface-container z-20 animate-levitate ${step === 'nlp_processing' ? 'animate-glow' : ''}`}>
-               <img src="/avatar.png" alt="Abogada 3D" className="w-full h-full object-cover scale-110 object-top" />
+            <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-20">
+              <div className={`w-28 h-28 rounded-full border-4 border-surface shadow-[0_4px_15px_rgba(0,0,0,0.15)] overflow-hidden bg-surface-container animate-levitate ${step === 'nlp_processing' ? 'animate-glow' : ''}`}>
+                 <img src="/avatar.png" alt="Abogada 3D" className="w-full h-full object-cover scale-110 object-top" />
+              </div>
             </div>
 
             {/* Header del Widget */}
