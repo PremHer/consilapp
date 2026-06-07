@@ -329,22 +329,27 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-24 right-4 md:right-8 w-[calc(100vw-32px)] md:w-[380px] h-[550px] max-h-[75vh] bg-surface border border-outline-variant rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-4 md:right-8 w-[calc(100vw-32px)] md:w-[380px] h-[550px] max-h-[75vh] bg-surface border border-outline-variant rounded-2xl shadow-xl z-50 flex flex-col overflow-visible"
             ref={widgetRef}
           >
+            {/* 3D Avatar Flotante */}
+            <div className={`absolute -top-14 left-1/2 -translate-x-1/2 w-28 h-28 rounded-full border-4 border-surface shadow-[0_4px_15px_rgba(0,0,0,0.15)] overflow-hidden bg-surface-container z-20 animate-levitate ${step === 'nlp_processing' ? 'animate-glow' : ''}`}>
+               <img src="/avatar.png" alt="Abogada 3D" className="w-full h-full object-cover scale-110 object-top" />
+            </div>
+
             {/* Header del Widget */}
-            <div className="bg-primary text-on-primary p-md flex justify-between items-center shadow-sm z-10">
+            <div className="bg-primary text-on-primary p-md pt-10 flex justify-between items-center shadow-sm z-10 rounded-t-2xl">
               <div className="flex items-center gap-sm">
                 <ShieldAlert size={20} className="text-primary-container" />
                 <span className="font-headline-sm">Triaje Legal IA</span>
               </div>
-              <button onClick={onClose} className="text-on-primary hover:bg-primary-container/20 p-xs rounded transition-colors">
+              <button onClick={onClose} className="text-on-primary hover:bg-primary-container/20 p-xs rounded transition-colors -mt-6">
                 <X size={20} />
               </button>
             </div>
 
             {/* Contenido Dinámico */}
-            <div className="flex-1 overflow-hidden relative bg-surface-container-lowest">
+            <div className="flex-1 overflow-hidden relative bg-surface-container-lowest rounded-b-2xl">
               <AnimatePresence mode="wait">
                 {renderStep()}
               </AnimatePresence>
