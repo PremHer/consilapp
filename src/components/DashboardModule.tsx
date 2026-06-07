@@ -340,7 +340,7 @@ const DashboardModule = () => {
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <div className="p-lg space-y-md">
+            <div className="p-lg space-y-md max-h-[75vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-md">
                 <div className="bg-surface-container-lowest p-sm rounded-lg border border-outline-variant/50">
                   <p className="text-label-sm text-on-surface-variant mb-xs">N° Expediente</p>
@@ -427,7 +427,7 @@ const DashboardModule = () => {
                 </div>
               )}
               
-              {selectedExp.estado === 'AUDIENCIA' && selectedExp.fechaAudiencia && (
+              {selectedExp.estado === 'AUDIENCIA' && selectedExp.fechaAudiencia && new Date() >= new Date(selectedExp.fechaAudiencia) && (
                 <div className="border border-outline-variant rounded-lg overflow-hidden mt-md">
                   <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center justify-between">
                     <div className="flex items-center gap-sm">
