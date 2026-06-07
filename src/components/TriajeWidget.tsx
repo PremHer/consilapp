@@ -333,10 +333,10 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
             className="fixed bottom-24 right-4 md:right-8 w-[calc(100vw-32px)] md:w-[380px] h-[550px] max-h-[75vh] bg-surface border border-outline-variant rounded-2xl shadow-xl z-50 flex flex-col overflow-visible"
             ref={widgetRef}
           >
-            {/* 3D Spline Avatar Flotante */}
-            <div className="absolute -top-32 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-              <div className={`w-40 h-40 rounded-full border-4 border-surface shadow-[0_4px_15px_rgba(0,0,0,0.15)] overflow-hidden bg-surface-container-lowest flex items-center justify-center animate-levitate pointer-events-auto ${step === 'nlp_processing' ? 'animate-glow' : ''}`}>
-                 <div className="w-full h-full scale-[1.2] translate-y-[10%]">
+            {/* 3D Spline Avatar Flotante (Transparente) */}
+            <div className="absolute -top-[120px] left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+              <div className={`w-44 h-44 flex items-center justify-center animate-levitate pointer-events-auto drop-shadow-2xl ${step === 'nlp_processing' ? 'animate-glow' : ''}`}>
+                 <div className="w-full h-full scale-[1.3] translate-y-[5%]">
                     <Spline scene="https://prod.spline.design/SdjSMisPYtEGb-fW/scene.splinecode" />
                  </div>
               </div>
