@@ -229,6 +229,32 @@ app.put('/api/expedientes/:id/audiencia', async (req, res) => {
   }
 });
 
+// Avanzar a siguiente sesión
+app.put('/api/expedientes/:id/avanzarsesion', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const expExistente = await prisma.expediente.findUnique({ where: { id } });
+    if (!expExistente) return res.status(404).json({ error: 'Expediente no encontrado' });
+
+    const expediente = await prisma.expediente.update({
+      where: { id },
+      data: { 
+        sesionActual: expExistente.sesionActual + 1,
+        estado: 'INVITACIONES',
+        fechaAudiencia: null,
+        enlaceSala: null
+      }
+    });
+    
+    io.emit('expediente_actualizado', expediente);
+    res.json(expediente);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al avanzar sesión' });
+  }
+});
+
 // Endpoint de Chatbot IA (Triaje)
 app.post('/api/chat', async (req, res) => {
   try {

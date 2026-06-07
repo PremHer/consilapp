@@ -25,6 +25,7 @@ model Expediente {
   solicitanteEmail String?
   solicitanteCelular String?
   invitadoDireccion String?
+  sesionActual   Int      @default(1)
   
   // Relaciones
   solicitanteDni String

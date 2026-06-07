@@ -299,6 +299,32 @@ const DashboardModule = () => {
             </div>
           </div>
 
+          {/* Column 5: CONCLUIDO */}
+          <div className="flex-1 min-w-[85vw] sm:min-w-[300px] snap-center">
+            <div className="flex items-center justify-between mb-md px-xs">
+              <div className="flex items-center gap-sm">
+                <span className="font-label-lg text-on-surface">CONCLUIDO</span>
+                <span className="bg-surface-container-highest text-on-surface-variant px-sm rounded-full text-label-sm">
+                  {filteredExpedientes.filter(e => e.estado === 'CONCLUIDO').length.toString().padStart(2, '0')}
+                </span>
+              </div>
+            </div>
+            <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
+              {filteredExpedientes.filter(e => e.estado === 'CONCLUIDO').map((exp, i) => (
+                <motion.div key={exp.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}
+                  className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm opacity-80 hover:opacity-100 transition-all cursor-pointer"
+                  onClick={() => setSelectedExp(exp)}>
+                  <div className="flex justify-between items-start mb-sm">
+                    <span className="text-label-sm text-on-surface-variant font-bold line-through decoration-1">{exp.numero || exp.id.substring(0, 8)}</span>
+                    <span className="bg-primary/10 text-primary px-xs py-[2px] rounded text-[10px] font-bold">CERRADO</span>
+                  </div>
+                  <h4 className="font-label-lg mb-xs text-on-surface-variant">{exp.solicitanteNom}</h4>
+                  <p className="text-body-sm text-on-surface-variant line-clamp-1">{exp.materia}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </main>
 
@@ -379,7 +405,7 @@ const DashboardModule = () => {
                     {selectedExp.fechaAudiencia ? (
                       <div className="flex justify-between items-center">
                         <span className="text-body-sm text-on-surface-variant">Fecha programada:</span>
-                        <span className="font-label-md bg-primary-container text-primary px-sm py-xs rounded">
+                        <span className="font-label-md bg-surface-container-highest text-on-surface px-sm py-xs rounded border border-outline-variant shadow-sm">
                           {new Date(selectedExp.fechaAudiencia).toLocaleString()}
                         </span>
                       </div>
@@ -403,9 +429,12 @@ const DashboardModule = () => {
               
               {selectedExp.estado === 'AUDIENCIA' && selectedExp.fechaAudiencia && (
                 <div className="border border-outline-variant rounded-lg overflow-hidden mt-md">
-                  <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center gap-sm">
-                    <span className="material-symbols-outlined text-secondary">gavel</span>
-                    <h4 className="font-label-lg text-secondary">Finalizar Caso</h4>
+                  <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center justify-between">
+                    <div className="flex items-center gap-sm">
+                      <span className="material-symbols-outlined text-secondary">gavel</span>
+                      <h4 className="font-label-lg text-secondary">Finalizar Caso</h4>
+                    </div>
+                    <span className="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-sm py-xs rounded">SESIÓN {selectedExp.sesionActual || 1}</span>
                   </div>
                   <div className="p-md bg-surface-container-lowest flex flex-col gap-sm">
                     <label className="text-label-sm text-on-surface-variant font-bold">Resultado de la Audiencia</label>
@@ -453,15 +482,30 @@ const DashboardModule = () => {
                   )}
                   {selectedExp.estado === 'AUDIENCIA' && selectedExp.fechaAudiencia ? (
                     <button 
-                      onClick={() => {
-                        import('../utils/pdfGenerator').then(module => {
-                          module.generateActaFinalPDF(selectedExp, resultadoAudiencia, inasistente);
-                        });
+                      onClick={async () => {
+                        const m = await import('../utils/pdfGenerator');
+                        const sesion = selectedExp.sesionActual || 1;
+                        const requiresNextSession = (resultadoAudiencia === 'INASISTENCIA_UNA_PARTE' && sesion === 1) || resultadoAudiencia === 'ACUERDO_PARCIAL';
+                        
+                        m.generateActaFinalPDF(selectedExp, resultadoAudiencia, inasistente, sesion);
+                        
+                        if (requiresNextSession) {
+                           await useStore.getState().avanzarSesion(selectedExp.id);
+                           setSelectedExp(null); // Cerrar modal porque el estado cambia
+                        } else {
+                           await useStore.getState().updateExpedienteStatus(selectedExp.id, 'CONCLUIDO');
+                           setSelectedExp(null);
+                        }
                       }}
                       className="px-md py-sm bg-primary text-on-primary rounded-lg font-label-lg hover:bg-primary/90 transition-colors flex items-center gap-xs shadow-sm"
                     >
                       <span className="material-symbols-outlined">description</span>
-                      Generar Acta Final
+                      {(() => {
+                         const sesion = selectedExp.sesionActual || 1;
+                         if (resultadoAudiencia === 'INASISTENCIA_UNA_PARTE' && sesion === 1) return 'Constancia y Reprogramar';
+                         if (resultadoAudiencia === 'ACUERDO_PARCIAL') return 'Acta Parcial y Nueva Sesión';
+                         return 'Acta Final y Concluir';
+                      })()}
                     </button>
                   ) : (
                     <button 

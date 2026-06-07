@@ -137,7 +137,7 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
   doc.save(`Solicitud_Conciliacion_${expediente.numero || expediente.id.substring(0, 8)}.pdf`);
 };
 
-export const generateActaFinalPDF = (expediente: Expediente, resultado: string, inasistente: string = 'INVITADO') => {
+export const generateActaFinalPDF = (expediente: Expediente, resultado: string, inasistente: string = 'INVITADO', sesion: number = 1) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const marginLeft = 20;
@@ -152,15 +152,21 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string, 
   };
 
   // Mapeo de Títulos de Resultados
-  const titulos: Record<string, string> = {
-    'ACUERDO_TOTAL': 'ACTA DE CONCILIACIÓN CON ACUERDO TOTAL',
-    'ACUERDO_PARCIAL': 'ACTA DE CONCILIACIÓN CON ACUERDO PARCIAL',
-    'FALTA_ACUERDO': 'ACTA DE CONCILIACIÓN POR FALTA DE ACUERDO',
-    'INASISTENCIA_UNA_PARTE': `ACTA DE CONCILIACIÓN POR INASISTENCIA DEL ${inasistente}`,
-    'INASISTENCIA_AMBAS_PARTES': 'ACTA DE CONCILIACIÓN POR INASISTENCIA DE AMBAS PARTES',
-  };
-
-  const tituloActa = titulos[resultado] || 'ACTA DE CONCILIACIÓN EXTRAJUDICIAL';
+  let tituloActa = 'ACTA DE CONCILIACIÓN EXTRAJUDICIAL';
+  
+  if (resultado === 'ACUERDO_TOTAL') tituloActa = 'ACTA DE CONCILIACIÓN CON ACUERDO TOTAL';
+  if (resultado === 'ACUERDO_PARCIAL') tituloActa = 'ACTA DE CONCILIACIÓN CON ACUERDO PARCIAL (SUSPENSIÓN DE AUDIENCIA)';
+  if (resultado === 'FALTA_ACUERDO') tituloActa = 'ACTA DE CONCILIACIÓN POR FALTA DE ACUERDO';
+  
+  if (resultado === 'INASISTENCIA_UNA_PARTE') {
+    if (sesion === 1) {
+      tituloActa = `CONSTANCIA DE INASISTENCIA (1RA INVITACIÓN) DEL ${inasistente}`;
+    } else {
+      tituloActa = `ACTA DE CONCILIACIÓN POR INASISTENCIA DE UNA DE LAS PARTES (2DA INVITACIÓN)`;
+    }
+  }
+  
+  if (resultado === 'INASISTENCIA_AMBAS_PARTES') tituloActa = 'ACTA DE CONCILIACIÓN POR INASISTENCIA DE AMBAS PARTES';
 
   // Encabezado Oficial
   addCenteredText('REPÚBLICA DEL PERÚ', cursorY, 14, 'bold');

@@ -14,11 +14,12 @@ export interface Expediente {
   invitadoDni: string;
   invitadoCelular?: string;
   invitadoDireccion?: string;
-  estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA';
+  estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA' | 'CONCLUIDO';
   urgency?: 'NORMAL' | 'URGENTE';
   fechaAudiencia?: string;
   enlaceSala?: string;
   fechaCreacion: string;
+  sesionActual: number;
 }
 
 interface StoreState {
@@ -28,6 +29,7 @@ interface StoreState {
   addExpediente: (expediente: Partial<Expediente>) => Promise<void>;
   updateExpedienteStatus: (id: string, nuevoEstado: Expediente['estado']) => Promise<void>;
   agendarAudiencia: (id: string, fechaAudiencia: string) => Promise<void>;
+  avanzarSesion: (id: string) => Promise<void>;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   filterCategoria: string;
@@ -119,6 +121,25 @@ export const useStore = create<StoreState>((set) => ({
       }
     } catch (error) {
       console.error("Error scheduling audience:", error);
+    }
+  },
+
+  avanzarSesion: async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/expedientes/${id}/avanzarsesion`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        set((state) => ({
+          expedientes: state.expedientes.map(exp => 
+            exp.id === id ? { ...exp, sesionActual: data.sesionActual, estado: 'INVITACIONES', fechaAudiencia: undefined } : exp
+          )
+        }));
+      }
+    } catch (error) {
+      console.error("Error advancing session:", error);
     }
   }
 }));
