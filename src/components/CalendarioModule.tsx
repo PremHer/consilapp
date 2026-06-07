@@ -47,7 +47,7 @@ const CalendarioModule = () => {
                   <span className="text-label-md mt-xs">{new Date(exp.fechaAudiencia!).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-sm">
                     <span className="bg-surface-container-highest px-sm py-xs rounded text-label-sm font-bold border border-outline-variant text-on-surface-variant">
                       {exp.numero || exp.id.substring(0,8)}
@@ -57,7 +57,7 @@ const CalendarioModule = () => {
                       {exp.materia}
                     </span>
                   </div>
-                  <h3 className="font-headline-sm text-on-surface mb-xs truncate">{exp.solicitanteNom} vs. {exp.invitadoNom}</h3>
+                  <h3 className="font-headline-sm text-on-surface mb-xs truncate" title={`${exp.solicitanteNom} vs. ${exp.invitadoNom}`}>{exp.solicitanteNom} vs. {exp.invitadoNom}</h3>
                   
                   <div className="flex flex-col gap-xs mt-md">
                     <p className="text-body-sm text-on-surface-variant flex items-center gap-xs">
@@ -71,10 +71,21 @@ const CalendarioModule = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col justify-end">
-                  <button className="border border-primary text-primary px-md py-sm rounded-lg font-label-md hover:bg-primary hover:text-on-primary transition-colors whitespace-nowrap">
-                    Ingresar a Sala
-                  </button>
+                <div className="flex flex-col justify-end mt-sm md:mt-0">
+                  {exp.enlaceSala && Date.now() < new Date(exp.fechaAudiencia!).getTime() + (2 * 60 * 60 * 1000) ? (
+                    <a 
+                      href={exp.enlaceSala} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="border border-primary text-primary px-md py-sm rounded-lg font-label-md hover:bg-primary hover:text-on-primary transition-colors whitespace-nowrap text-center flex items-center justify-center gap-xs"
+                    >
+                      Ingresar a Sala
+                    </a>
+                  ) : (
+                    <span className="bg-surface-container-highest text-on-surface-variant px-md py-sm rounded-lg font-label-md whitespace-nowrap text-center border border-outline-variant">
+                      Audiencia Vencida
+                    </span>
+                  )}
                 </div>
               </motion.div>
             ))
