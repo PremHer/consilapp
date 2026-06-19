@@ -17,6 +17,8 @@ jobs:
       run: npm install
     - name: Build Web App
       run: npm run build
+      env:
+        VITE_API_URL: https://attractive-reverence-production-6949.up.railway.app/api
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
