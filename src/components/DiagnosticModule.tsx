@@ -115,13 +115,13 @@ const DiagnosticModule = () => {
           </div>
           <div className="md:text-right flex flex-col justify-center">
             <p className="text-body-md text-surface-variant mb-xs">
-              Plataforma desarrollada por:
+              Desarrollado por:
             </p>
             <p className="font-headline-sm text-white mb-xs">
-              Prem Hernandez
+              Yocely Tapia
             </p>
             <p className="text-body-md text-primary-fixed-dim">
-              Analista de Sistemas | Empresa CCRED
+              Estudiante de Derecho
             </p>
             <p className="text-body-sm text-outline-variant mt-lg">
               © {new Date().getFullYear()} Todos los derechos reservados.
