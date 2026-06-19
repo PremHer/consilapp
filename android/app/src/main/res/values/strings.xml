@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name"> Consilapp</string>
+    <string name="title_activity_main"> Consilapp</string>
+    <string name="package_name">com.consilapp.app</string>
+    <string name="custom_url_scheme">com.consilapp.app</string>
+</resources>
