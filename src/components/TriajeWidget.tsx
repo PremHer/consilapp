@@ -60,9 +60,10 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
       }
       
       setStep('ai_response');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setAiResponse(`❌ Error de conexión con la IA. Por favor, intente nuevamente.`);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      setAiResponse(`❌ Error de conexión con la IA.\nURL: ${API_URL}/chat\nError: ${err.message}`);
       setHasAiError(true);
       setStep('ai_response');
     }
