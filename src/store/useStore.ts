@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { io } from 'socket.io-client';
+import { useNotificationsStore } from './useNotificationsStore';
 
 export interface Expediente {
   id: string;
@@ -150,9 +151,14 @@ const socket = io(SOCKET_URL);
 
 socket.on('expediente_creado', (newExp: Expediente) => {
   useStore.setState((state) => {
-    // Evitar duplicados si ya se añadió localmente
     if (state.expedientes.some(e => e.id === newExp.id)) return state;
     return { expedientes: [newExp, ...state.expedientes] };
+  });
+  useNotificationsStore.getState().addNotification({
+    type: 'expediente_creado',
+    title: 'Nuevo expediente ingresado',
+    message: `Se ha registrado el expediente ${newExp.numero} — ${newExp.materia}`,
+    expedienteNumero: newExp.numero,
   });
 });
 
@@ -162,4 +168,17 @@ socket.on('expediente_actualizado', (updatedExp: Expediente) => {
       exp.id === updatedExp.id ? { ...exp, ...updatedExp } : exp
     )
   }));
+  const estadoLabels: Record<string, string> = {
+    RECIBIDO: 'Recibido',
+    CALIFICADO: 'Calificado',
+    INVITACIONES: 'Invitación enviada',
+    AUDIENCIA: 'Audiencia programada',
+    CONCLUIDO: 'Concluido',
+  };
+  useNotificationsStore.getState().addNotification({
+    type: 'expediente_actualizado',
+    title: `Expediente ${updatedExp.numero} actualizado`,
+    message: `Estado: ${estadoLabels[updatedExp.estado] || updatedExp.estado}`,
+    expedienteNumero: updatedExp.numero,
+  });
 });

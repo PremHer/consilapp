@@ -5,12 +5,14 @@ import DashboardModule from './components/DashboardModule';
 import AdmisibilidadModule from './components/AdmisibilidadModule';
 import CalendarioModule from './components/CalendarioModule';
 import ReportesModule from './components/ReportesModule';
+import NotFoundPage from './components/NotFoundPage';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginModule from './components/LoginModule';
 import SeguimientoModule from './components/SeguimientoModule';
 import { useAuthStore } from './store/useAuthStore';
 import { useStore } from './store/useStore';
+import { useNotificationsStore } from './store/useNotificationsStore';
 
 // Sidebar: Solo visible en rutas privadas
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) => {
@@ -85,22 +87,47 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
 const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) => void, isPublic?: boolean }) => {
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [showSettings, setShowSettings] = React.useState(false);
+  const [showMobileSearch, setShowMobileSearch] = React.useState(false);
   
   const [showProfile, setShowProfile] = React.useState(false);
   const [showSecurity, setShowSecurity] = React.useState(false);
-  const [isDark, setIsDark] = React.useState(() => document.documentElement.classList.contains('dark-theme'));
+  const [isDark, setIsDark] = React.useState(() => {
+    const saved = localStorage.getItem('theme_dark');
+    if (saved !== null) return saved === 'true';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   const user = useAuthStore(state => state.user);
+  const searchQuery = useStore(state => state.searchQuery);
+  const setSearchQuery = useStore(state => state.setSearchQuery);
+  const notifications = useNotificationsStore(state => state.notifications);
+  const unreadCount = useNotificationsStore(state => state.unreadCount);
+  const markAllAsRead = useNotificationsStore(state => state.markAllAsRead);
 
-  const toggleDarkMode = () => {
-    const isNowDark = !isDark;
-    setIsDark(isNowDark);
-    if (isNowDark) {
+  React.useEffect(() => {
+    if (isDark) {
       document.documentElement.classList.add('dark-theme');
     } else {
       document.documentElement.classList.remove('dark-theme');
     }
+    localStorage.setItem('theme_dark', String(isDark));
+  }, [isDark]);
+
+  const toggleDarkMode = () => {
+    setIsDark(!isDark);
     setShowSettings(false);
   };
+
+  const timeAgo = (date: Date) => {
+    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    if (seconds < 60) return 'Hace un momento';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `Hace ${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `Hace ${hours}h`;
+    return `Hace ${Math.floor(hours / 24)}d`;
+  };
+
+
 
   return (
     <>
@@ -124,16 +151,19 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
               className="w-full pl-xl pr-md py-sm bg-surface-container border border-outline-variant rounded-full text-body-md focus:outline-none focus:border-primary transition-colors" 
               placeholder="Buscar expediente, DNI o nombre..." 
               type="text" 
-              value={useStore((state) => state.searchQuery)}
-              onChange={(e) => useStore.getState().setSearchQuery(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         )}
       </div>
       {!isPublic && (
         <div className="flex items-center gap-sm md:gap-md ml-auto relative">
-          <button className="sm:hidden p-sm text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all">
-            <span className="material-symbols-outlined">search</span>
+          <button 
+            className="sm:hidden p-sm text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all"
+            onClick={() => setShowMobileSearch(!showMobileSearch)}
+          >
+            <span className="material-symbols-outlined">{showMobileSearch ? 'close' : 'search'}</span>
           </button>
           
           <div className="relative">
@@ -142,20 +172,38 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
               className={`p-sm rounded-full transition-all ${showNotifications ? 'bg-primary-container text-primary' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
             >
               <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+              {unreadCount() > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-error rounded-full text-[10px] text-on-error flex items-center justify-center font-bold px-[4px]">
+                  {unreadCount() > 9 ? '9+' : unreadCount()}
+                </span>
+              )}
             </button>
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 bg-surface rounded-xl shadow-lg border border-outline-variant overflow-hidden z-50">
                 <div className="p-md border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
                   <h3 className="font-label-lg font-bold">Notificaciones</h3>
-                  <button className="text-primary text-label-sm hover:underline" onClick={() => setShowNotifications(false)}>Cerrar</button>
+                  <div className="flex items-center gap-sm">
+                    {unreadCount() > 0 && (
+                      <button className="text-primary text-label-sm hover:underline" onClick={markAllAsRead}>Marcar leídas</button>
+                    )}
+                    <button className="text-on-surface-variant text-label-sm hover:underline" onClick={() => setShowNotifications(false)}>Cerrar</button>
+                  </div>
                 </div>
                 <div className="max-h-64 overflow-y-auto">
-                  <div className="p-md border-b border-outline-variant hover:bg-surface-container-lowest transition-colors cursor-pointer">
-                    <p className="text-label-md font-bold text-on-surface">Nuevo expediente ingresado</p>
-                    <p className="text-body-sm text-on-surface-variant">Se ha registrado el exp. #2026-003</p>
-                    <p className="text-[10px] text-primary mt-xs">Hace 5 min</p>
-                  </div>
+                  {notifications.length === 0 ? (
+                    <div className="p-lg text-center text-on-surface-variant">
+                      <span className="material-symbols-outlined text-[32px] opacity-30 mb-sm block">notifications_none</span>
+                      <p className="text-label-md opacity-50">Sin notificaciones</p>
+                    </div>
+                  ) : (
+                    notifications.slice(0, 10).map(n => (
+                      <div key={n.id} className={`p-md border-b border-outline-variant hover:bg-surface-container-lowest transition-colors cursor-pointer ${!n.read ? 'bg-primary-container/5' : ''}`}>
+                        <p className="text-label-md font-bold text-on-surface">{n.title}</p>
+                        <p className="text-body-sm text-on-surface-variant">{n.message}</p>
+                        <p className="text-[10px] text-primary mt-xs">{timeAgo(n.timestamp)}</p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -198,6 +246,23 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
         </div>
       )}
     </header>
+
+    {/* Búsqueda móvil */}
+    {!isPublic && showMobileSearch && (
+      <div className="sm:hidden px-md py-sm bg-surface-container-lowest border-b border-outline-variant">
+        <div className="relative">
+          <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+          <input 
+            className="w-full pl-xl pr-md py-sm bg-surface-container border border-outline-variant rounded-full text-body-md focus:outline-none focus:border-primary transition-colors" 
+            placeholder="Buscar expediente, DNI o nombre..." 
+            type="text"
+            autoFocus
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+    )}
 
     {/* Modal de Perfil */}
     {showProfile && (
@@ -311,6 +376,9 @@ function App() {
             <PrivateLayout><ReportesModule /></PrivateLayout>
           </ProtectedRoute>
         } />
+
+        {/* 404 */}
+        <Route path="*" element={<PublicLayout><NotFoundPage /></PublicLayout>} />
       </Routes>
     </Router>
   );

@@ -3,25 +3,68 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-surface: #fcf9f8;
+    --color-surface-container: #f0eded;
+    --color-surface-container-low: #f6f3f2;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-high: #e5e2e1;
+    --color-surface-container-highest: #e5e2e1;
+    --color-on-surface: #1c1b1b;
+    --color-on-surface-variant: #5a403e;
+    --color-outline-variant: #e2beba;
+    --color-outline: #8e706d;
+    --color-primary: #8f000d;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #b22222;
+    --color-secondary: #735c00;
+    --color-on-secondary: #ffffff;
+    --color-secondary-container: #fed65b;
+    --color-error: #ba1a1a;
+    --color-on-error: #ffffff;
+    --color-error-container: #ffdad6;
+    --color-on-error-container: #93000a;
+    --scrollbar-track: #f0eded;
+    --scrollbar-thumb: #e2beba;
+    --scrollbar-thumb-hover: #8e706d;
+  }
+
+  html.dark-theme {
+    --color-surface: #1a1110;
+    --color-surface-container: #251e1d;
+    --color-surface-container-low: #201918;
+    --color-surface-container-lowest: #110d0c;
+    --color-surface-container-high: #302827;
+    --color-surface-container-highest: #3b3231;
+    --color-on-surface: #efe0de;
+    --color-on-surface-variant: #d7c2bf;
+    --color-outline-variant: #534341;
+    --color-outline: #a08c89;
+    --color-primary: #ffb4ac;
+    --color-on-primary: #690005;
+    --color-primary-container: #930012;
+    --color-secondary: #e9c349;
+    --color-on-secondary: #3c2f00;
+    --color-secondary-container: #574500;
+    --color-error: #ffb4ab;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-on-error-container: #ffdad6;
+    --scrollbar-track: #251e1d;
+    --scrollbar-thumb: #534341;
+    --scrollbar-thumb-hover: #a08c89;
+  }
+
   body {
     font-family: 'Inter', sans-serif;
-    background-color: #fcf9f8;
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-/* Modo Oscuro Global (Filtro Inteligente) */
-html.dark-theme body {
-    filter: invert(1) hue-rotate(180deg);
-    background-color: #030607;
-}
-html.dark-theme img, 
-html.dark-theme video, 
-html.dark-theme iframe {
-    filter: invert(1) hue-rotate(180deg);
 }
 
 .kanban-column {
@@ -33,14 +76,14 @@ html.dark-theme iframe {
     height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #f0eded;
+    background: var(--scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-    background: #e2beba;
+    background: var(--scrollbar-thumb);
     border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #8e706d;
+    background: var(--scrollbar-thumb-hover);
 }
 
 /* Animaciones 3D Avatar */

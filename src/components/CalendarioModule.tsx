@@ -1,14 +1,48 @@
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Search } from 'lucide-react';
+import { Calendar, Clock, MapPin, Search, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 const CalendarioModule = () => {
   const expedientes = useStore((state) => state.expedientes);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Filtrar solo expedientes con audiencia programada
-  const audiencias = expedientes
-    .filter(e => e.fechaAudiencia)
-    .sort((a, b) => new Date(a.fechaAudiencia!).getTime() - new Date(b.fechaAudiencia!).getTime());
+  const audiencias = useMemo(() => {
+    let filtered = expedientes.filter(e => e.fechaAudiencia);
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(e =>
+        (e.solicitanteNom && e.solicitanteNom.toLowerCase().includes(q)) ||
+        (e.invitadoNom && e.invitadoNom.toLowerCase().includes(q)) ||
+        (e.solicitanteDni && e.solicitanteDni.includes(q)) ||
+        (e.invitadoDni && e.invitadoDni.includes(q)) ||
+        (e.numero && e.numero.toLowerCase().includes(q))
+      );
+    }
+
+    return filtered.sort((a, b) => new Date(a.fechaAudiencia!).getTime() - new Date(b.fechaAudiencia!).getTime());
+  }, [expedientes, searchQuery]);
+
+  // Resumen mensual real
+  const resumenMensual = useMemo(() => {
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+
+    const audienciasEsteMes = expedientes.filter(e => {
+      if (!e.fechaAudiencia) return false;
+      const d = new Date(e.fechaAudiencia);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    });
+
+    const programadas = audienciasEsteMes.filter(e => new Date(e.fechaAudiencia!) > now).length;
+    const realizadas = audienciasEsteMes.filter(e => new Date(e.fechaAudiencia!) <= now && e.estado === 'CONCLUIDO').length;
+    const pendientes = audienciasEsteMes.filter(e => new Date(e.fechaAudiencia!) <= now && e.estado !== 'CONCLUIDO').length;
+
+    return { programadas, realizadas, pendientes };
+  }, [expedientes]);
 
   return (
     <div className="max-w-6xl mx-auto pt-lg px-md w-full">
@@ -22,8 +56,18 @@ const CalendarioModule = () => {
           <input 
             type="text" 
             placeholder="Buscar por DNI o Nombres..." 
-            className="pl-xl pr-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg w-full md:w-64 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-xl pr-xl py-sm bg-surface-container-lowest border border-outline-variant rounded-lg w-full md:w-64 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -33,8 +77,12 @@ const CalendarioModule = () => {
           {audiencias.length === 0 ? (
             <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-xl text-center text-on-surface-variant">
               <Calendar size={48} className="mx-auto mb-md opacity-50" />
-              <p className="font-label-lg">No hay audiencias programadas</p>
-              <p className="text-body-md">Vaya al Tablero y mueva expedientes a estado AUDIENCIA.</p>
+              <p className="font-label-lg">
+                {searchQuery ? 'No se encontraron audiencias con esa búsqueda' : 'No hay audiencias programadas'}
+              </p>
+              <p className="text-body-md">
+                {searchQuery ? 'Intenta con otro término de búsqueda.' : 'Vaya al Tablero y mueva expedientes a estado AUDIENCIA.'}
+              </p>
             </div>
           ) : (
             audiencias.map((exp, i) => (
@@ -99,18 +147,25 @@ const CalendarioModule = () => {
             <div className="space-y-sm">
               <div className="flex justify-between items-center text-body-md">
                 <span className="text-on-surface-variant">Programadas</span>
-                <span className="font-bold">{audiencias.length}</span>
+                <span className="font-bold">{resumenMensual.programadas}</span>
               </div>
               <div className="flex justify-between items-center text-body-md">
                 <span className="text-on-surface-variant">Realizadas</span>
-                <span className="font-bold">0</span>
+                <span className="font-bold" style={{ color: '#4caf50' }}>{resumenMensual.realizadas}</span>
               </div>
               <div className="flex justify-between items-center text-body-md">
-                <span className="text-on-surface-variant">Canceladas</span>
-                <span className="font-bold">0</span>
+                <span className="text-on-surface-variant">Pendientes</span>
+                <span className="font-bold text-secondary">{resumenMensual.pendientes}</span>
               </div>
             </div>
           </div>
+          {searchQuery && (
+            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md text-center">
+              <p className="text-label-sm text-on-surface-variant">
+                Mostrando <strong className="text-on-surface">{audiencias.length}</strong> resultado{audiencias.length !== 1 ? 's' : ''} para "<strong className="text-primary">{searchQuery}</strong>"
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

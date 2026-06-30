@@ -14,6 +14,7 @@ const DashboardModule = () => {
   const [selectedExp, setSelectedExp] = React.useState<Expediente | null>(null);
   const [resultadoAudiencia, setResultadoAudiencia] = React.useState('ACUERDO_TOTAL');
   const [inasistente, setInasistente] = React.useState('INVITADO');
+  const [confirmAction, setConfirmAction] = React.useState<{ message: string; onConfirm: () => void } | null>(null);
   const navigate = useNavigate();
 
   // Función utilitaria para Semáforo de Plazos Legales
@@ -52,6 +53,13 @@ const DashboardModule = () => {
   }, [expedientes, filterCategoria, searchQuery]);
 
   const exportToCSV = () => {
+    const escapeCSV = (field: string) => {
+      const str = String(field ?? '');
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    };
     const headers = ['Nro Expediente', 'Estado', 'Materia', 'Solicitante', 'Invitado', 'Fecha Creacion'];
     const rows = filteredExpedientes.map(exp => [
       exp.numero || exp.id,
@@ -59,16 +67,18 @@ const DashboardModule = () => {
       exp.materia,
       exp.solicitanteNom,
       exp.invitadoNom,
-      new Date(exp.fechaCreacion).toLocaleString()
+      new Date(exp.fechaCreacion).toLocaleString('es-PE')
     ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `reporte_expedientes_${new Date().toISOString().split('T')[0]}.csv`);
+    const csvString = [headers.map(escapeCSV).join(','), ...rows.map(r => r.map(escapeCSV).join(','))].join('\n');
+    const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `reporte_expedientes_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
+    URL.revokeObjectURL(url);
   };
 
   React.useEffect(() => {
@@ -144,6 +154,12 @@ const DashboardModule = () => {
               <button className="text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined">more_vert</span></button>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
+              {filteredExpedientes.filter(e => e.estado === 'RECIBIDO').length === 0 && (
+                <div className="flex flex-col items-center justify-center py-xl text-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-[40px] mb-sm opacity-30">inbox</span>
+                  <p className="text-label-md opacity-50">Sin expedientes recibidos</p>
+                </div>
+              )}
               {filteredExpedientes.filter(e => e.estado === 'RECIBIDO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
@@ -184,6 +200,12 @@ const DashboardModule = () => {
               </div>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
+              {filteredExpedientes.filter(e => e.estado === 'CALIFICADO').length === 0 && (
+                <div className="flex flex-col items-center justify-center py-xl text-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-[40px] mb-sm opacity-30">fact_check</span>
+                  <p className="text-label-md opacity-50">Sin expedientes calificados</p>
+                </div>
+              )}
               {filteredExpedientes.filter(e => e.estado === 'CALIFICADO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
@@ -200,7 +222,13 @@ const DashboardModule = () => {
                       <span className="text-label-sm truncate max-w-[80px]">Resp: AI</span>
                     </div>
                     <button 
-                      onClick={(e) => { e.stopPropagation(); updateExpedienteStatus(exp.id, 'INVITACIONES'); }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setConfirmAction({
+                          message: `¿Enviar invitación por WhatsApp a ${exp.invitadoNom}? Esta acción notificará al invitado sobre el proceso de conciliación.`,
+                          onConfirm: () => { updateExpedienteStatus(exp.id, 'INVITACIONES'); setConfirmAction(null); }
+                        });
+                      }}
                       className="px-sm py-xs bg-secondary-container text-on-secondary-container rounded text-label-sm font-bold hover:bg-secondary hover:text-on-secondary transition-colors"
                     >
                       Invitar (WhatsApp)
@@ -222,6 +250,12 @@ const DashboardModule = () => {
               </div>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
+              {filteredExpedientes.filter(e => e.estado === 'INVITACIONES').length === 0 && (
+                <div className="flex flex-col items-center justify-center py-xl text-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-[40px] mb-sm opacity-30">mail</span>
+                  <p className="text-label-md opacity-50">Sin invitaciones pendientes</p>
+                </div>
+              )}
               {filteredExpedientes.filter(e => e.estado === 'INVITACIONES').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
@@ -262,6 +296,12 @@ const DashboardModule = () => {
               </div>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
+              {filteredExpedientes.filter(e => e.estado === 'AUDIENCIA').length === 0 && (
+                <div className="flex flex-col items-center justify-center py-xl text-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-[40px] mb-sm opacity-30">event</span>
+                  <p className="text-label-md opacity-50">Sin audiencias programadas</p>
+                </div>
+              )}
               {filteredExpedientes.filter(e => e.estado === 'AUDIENCIA').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                   onClick={() => setSelectedExp(exp)}
@@ -310,6 +350,12 @@ const DashboardModule = () => {
               </div>
             </div>
             <div className="kanban-column flex flex-col gap-md bg-surface-container-low rounded-xl p-md border border-outline-variant/30">
+              {filteredExpedientes.filter(e => e.estado === 'CONCLUIDO').length === 0 && (
+                <div className="flex flex-col items-center justify-center py-xl text-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-[40px] mb-sm opacity-30">task_alt</span>
+                  <p className="text-label-md opacity-50">Sin casos concluidos</p>
+                </div>
+              )}
               {filteredExpedientes.filter(e => e.estado === 'CONCLUIDO').map((exp, i) => (
                 <motion.div key={exp.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}
                   className="bg-surface-container-lowest p-md border border-outline-variant rounded-lg shadow-sm opacity-80 hover:opacity-100 transition-all cursor-pointer"
@@ -528,6 +574,27 @@ const DashboardModule = () => {
                   Cerrar
                 </button>
               </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setConfirmAction(null)}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-surface rounded-xl shadow-2xl max-w-sm w-full overflow-hidden border border-outline-variant">
+            <div className="p-lg text-center">
+              <div className="w-14 h-14 bg-primary-container/20 rounded-full flex items-center justify-center mx-auto mb-md">
+                <span className="material-symbols-outlined text-primary text-[28px]">warning</span>
+              </div>
+              <h3 className="font-headline-sm text-on-surface mb-sm">Confirmar Acción</h3>
+              <p className="text-body-md text-on-surface-variant">{confirmAction.message}</p>
+            </div>
+            <div className="flex border-t border-outline-variant">
+              <button onClick={() => setConfirmAction(null)} className="flex-1 py-sm text-label-lg text-on-surface-variant hover:bg-surface-container transition-colors">Cancelar</button>
+              <button onClick={confirmAction.onConfirm} className="flex-1 py-sm text-label-lg text-on-primary bg-primary hover:bg-primary/90 transition-colors font-bold">Confirmar</button>
             </div>
           </motion.div>
         </div>
