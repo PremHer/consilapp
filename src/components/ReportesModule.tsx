@@ -72,35 +72,81 @@ const ReportesModule = () => {
     };
   }, [expedientes]);
 
-  // CSV Export con escape RFC 4180
-  const exportToCSV = () => {
-    const escapeCSV = (field: string) => {
-      const str = String(field ?? '');
-      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-        return '"' + str.replace(/"/g, '""') + '"';
-      }
-      return str;
+  // Exportación a Excel con estilos formateados
+  const exportToExcel = () => {
+    const headers = ['Nro Expediente', 'Estado', 'Materia', 'Solicitante', 'DNI Solicitante', 'Invitado', 'DNI Invitado', 'Fecha Creación', 'Sesión'];
+    
+    const estadoLabels: Record<string, string> = {
+      RECIBIDO: 'Recibido',
+      CALIFICADO: 'Calificado',
+      INVITACIONES: 'Invitaciones',
+      AUDIENCIA: 'Audiencia',
+      CONCLUIDO: 'Concluido',
     };
 
-    const headers = ['Nro Expediente', 'Estado', 'Materia', 'Solicitante', 'DNI Solicitante', 'Invitado', 'DNI Invitado', 'Fecha Creación', 'Sesión'];
-    const rows = expedientes.map(exp => [
-      exp.numero || exp.id,
-      exp.estado,
-      exp.materia,
-      exp.solicitanteNom,
-      exp.solicitanteDni,
-      exp.invitadoNom,
-      exp.invitadoDni,
-      new Date(exp.fechaCreacion).toLocaleString('es-PE'),
-      String(exp.sesionActual),
-    ]);
+    const getEstadoStyle = (estado: string) => {
+      switch (estado) {
+        case 'CONCLUIDO': return 'background-color: #e8f5e9; color: #2e7d32; font-weight: bold; text-align: center;';
+        case 'AUDIENCIA': return 'background-color: #ffebee; color: #c62828; font-weight: bold; text-align: center;';
+        case 'INVITACIONES': return 'background-color: #fff8e1; color: #f57f17; font-weight: bold; text-align: center;';
+        case 'CALIFICADO': return 'background-color: #efebe9; color: #4e342e; font-weight: bold; text-align: center;';
+        default: return 'background-color: #e3f2fd; color: #1565c0; font-weight: bold; text-align: center;';
+      }
+    };
 
-    const csvString = [headers.map(escapeCSV).join(','), ...rows.map(r => r.map(escapeCSV).join(','))].join('\n');
-    const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
+    // Crear el contenido HTML con estilos para Excel
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; }
+          th { background-color: #8f000d; color: #ffffff; font-weight: bold; border: 1px solid #dcd9d9; padding: 10px; text-align: left; }
+          td { border: 1px solid #e5e2e1; padding: 8px; vertical-align: middle; }
+          .tr-even { background-color: #fcf9f8; }
+          .title-row { font-size: 16pt; font-weight: bold; color: #8f000d; text-align: center; padding: 15px; }
+          .meta-row { font-size: 10pt; color: #5a403e; font-style: italic; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <tr>
+            <td colspan="${headers.length}" class="title-row">REPORTE GENERAL DE EXPEDIENTES - BRIDGELAW</td>
+          </tr>
+          <tr>
+            <td colspan="${headers.length}" class="meta-row">Generado el: ${new Date().toLocaleString('es-PE')} | Total registros: ${expedientes.length}</td>
+          </tr>
+          <tr><td colspan="${headers.length}" style="border:none; height:10px;"></td></tr>
+          <thead>
+            <tr>
+              ${headers.map(h => `<th>${h}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${expedientes.map((exp, i) => `
+              <tr class="${i % 2 === 0 ? '' : 'tr-even'}">
+                <td style="font-weight: bold; color: #8f000d;">${exp.numero || exp.id}</td>
+                <td style="${getEstadoStyle(exp.estado)}">${estadoLabels[exp.estado] || exp.estado}</td>
+                <td>${exp.materia}</td>
+                <td>${exp.solicitanteNom}</td>
+                <td style="mso-number-format:'@';">${exp.solicitanteDni}</td>
+                <td>${exp.invitadoNom}</td>
+                <td style="mso-number-format:'@';">${exp.invitadoDni}</td>
+                <td>${new Date(exp.fechaCreacion).toLocaleString('es-PE')}</td>
+                <td style="text-align: center;">${exp.sesionActual}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `reporte_expedientes_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `reporte_expedientes_${new Date().toISOString().split('T')[0]}.xls`);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -117,11 +163,11 @@ const ReportesModule = () => {
           <p className="text-on-surface-variant text-body-lg">Visión general del desempeño del Centro de Conciliación.</p>
         </div>
         <button 
-          onClick={exportToCSV}
+          onClick={exportToExcel}
           className="flex items-center gap-sm bg-surface-container-lowest border border-outline-variant px-md py-sm rounded-lg text-label-lg hover:border-primary hover:text-primary transition-all shadow-sm self-start"
         >
           <Download size={18} />
-          Exportar CSV
+          Exportar Excel
         </button>
       </div>
 

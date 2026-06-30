@@ -52,29 +52,76 @@ const DashboardModule = () => {
     return filtered;
   }, [expedientes, filterCategoria, searchQuery]);
 
-  const exportToCSV = () => {
-    const escapeCSV = (field: string) => {
-      const str = String(field ?? '');
-      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-        return '"' + str.replace(/"/g, '""') + '"';
-      }
-      return str;
+  const exportToExcel = () => {
+    const headers = ['Nro Expediente', 'Estado', 'Materia', 'Solicitante', 'Invitado', 'Fecha Creación'];
+    
+    const estadoLabels: Record<string, string> = {
+      RECIBIDO: 'Recibido',
+      CALIFICADO: 'Calificado',
+      INVITACIONES: 'Invitaciones',
+      AUDIENCIA: 'Audiencia',
+      CONCLUIDO: 'Concluido',
     };
-    const headers = ['Nro Expediente', 'Estado', 'Materia', 'Solicitante', 'Invitado', 'Fecha Creacion'];
-    const rows = filteredExpedientes.map(exp => [
-      exp.numero || exp.id,
-      exp.estado,
-      exp.materia,
-      exp.solicitanteNom,
-      exp.invitadoNom,
-      new Date(exp.fechaCreacion).toLocaleString('es-PE')
-    ]);
-    const csvString = [headers.map(escapeCSV).join(','), ...rows.map(r => r.map(escapeCSV).join(','))].join('\n');
-    const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
+
+    const getEstadoStyle = (estado: string) => {
+      switch (estado) {
+        case 'CONCLUIDO': return 'background-color: #e8f5e9; color: #2e7d32; font-weight: bold; text-align: center;';
+        case 'AUDIENCIA': return 'background-color: #ffebee; color: #c62828; font-weight: bold; text-align: center;';
+        case 'INVITACIONES': return 'background-color: #fff8e1; color: #f57f17; font-weight: bold; text-align: center;';
+        case 'CALIFICADO': return 'background-color: #efebe9; color: #4e342e; font-weight: bold; text-align: center;';
+        default: return 'background-color: #e3f2fd; color: #1565c0; font-weight: bold; text-align: center;';
+      }
+    };
+
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; }
+          th { background-color: #8f000d; color: #ffffff; font-weight: bold; border: 1px solid #dcd9d9; padding: 10px; text-align: left; }
+          td { border: 1px solid #e5e2e1; padding: 8px; vertical-align: middle; }
+          .tr-even { background-color: #fcf9f8; }
+          .title-row { font-size: 15pt; font-weight: bold; color: #8f000d; text-align: center; padding: 12px; }
+          .meta-row { font-size: 9pt; color: #5a403e; font-style: italic; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <tr>
+            <td colspan="${headers.length}" class="title-row">TABLERO DE CONCILIACIÓN - EXPEDIENTES</td>
+          </tr>
+          <tr>
+            <td colspan="${headers.length}" class="meta-row">Generado el: ${new Date().toLocaleString('es-PE')} | Registros filtrados: ${filteredExpedientes.length}</td>
+          </tr>
+          <tr><td colspan="${headers.length}" style="border:none; height:8px;"></td></tr>
+          <thead>
+            <tr>
+              ${headers.map(h => `<th>${h}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredExpedientes.map((exp, i) => `
+              <tr class="${i % 2 === 0 ? '' : 'tr-even'}">
+                <td style="font-weight: bold; color: #8f000d;">${exp.numero || exp.id}</td>
+                <td style="${getEstadoStyle(exp.estado)}">${estadoLabels[exp.estado] || exp.estado}</td>
+                <td>${exp.materia}</td>
+                <td>${exp.solicitanteNom}</td>
+                <td>${exp.invitadoNom}</td>
+                <td>${new Date(exp.fechaCreacion).toLocaleString('es-PE')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `reporte_expedientes_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `reporte_tablero_${new Date().toISOString().split('T')[0]}.xls`);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -131,10 +178,10 @@ const DashboardModule = () => {
               <span className="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">arrow_drop_down</span>
             </div>
             <button 
-              onClick={exportToCSV}
+              onClick={exportToExcel}
               className="flex items-center gap-sm bg-surface-container-lowest border border-outline-variant px-md py-sm rounded-lg text-label-lg hover:border-primary hover:text-primary transition-all shadow-sm">
               <span className="material-symbols-outlined text-[18px]">download</span>
-              Exportar
+              Exportar Excel
             </button>
           </div>
         </div>
