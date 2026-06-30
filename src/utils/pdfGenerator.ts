@@ -1,13 +1,13 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import type { Expediente } from '../store/useStore';
 
 // Paleta de colores de Bridgelaw para el PDF
-const PRIMARY_COLOR = [19, 84, 59];     // #13543b (Verde Esmeralda Primario)
-const SECONDARY_COLOR = [184, 144, 71]; // #b89047 (Dorado Secundario)
-const TEXT_COLOR = [25, 28, 26];        // #191c1a (Texto Oscuro)
-const BORDER_COLOR = [191, 201, 192];   // #bfc9c0 (Bordes)
-const LIGHT_BG = [241, 243, 240];       // #f1f3f0 (Fondo Claro)
+const PRIMARY_COLOR: [number, number, number] = [19, 84, 59];     // #13543b (Verde Esmeralda Primario)
+const SECONDARY_COLOR: [number, number, number] = [184, 144, 71]; // #b89047 (Dorado Secundario)
+const TEXT_COLOR: [number, number, number] = [25, 28, 26];        // #191c1a (Texto Oscuro)
+const BORDER_COLOR: [number, number, number] = [191, 201, 192];   // #bfc9c0 (Bordes)
+const LIGHT_BG: [number, number, number] = [241, 243, 240];       // #f1f3f0 (Fondo Claro)
 
 // Helper para dibujar el encabezado de página oficial
 const drawPageHeader = (doc: jsPDF, title: string, subTitle?: string) => {
@@ -95,7 +95,7 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
   cursorY += 8;
 
   // I. Datos del Solicitante (usando autoTable para formato profesional de grilla)
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: cursorY,
     head: [[{ content: 'I. DATOS DEL SOLICITANTE', colSpan: 2 }]],
     body: [
@@ -117,8 +117,8 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
       cellPadding: 4
     },
     columnStyles: {
-      0: { fontStyle: 'bold', width: 50, fillColor: LIGHT_BG },
-      1: { width: 120 }
+      0: { fontStyle: 'bold', cellWidth: 50, fillColor: LIGHT_BG },
+      1: { cellWidth: 120 }
     },
     tableLineColor: BORDER_COLOR,
     tableLineWidth: 0.5,
@@ -131,7 +131,7 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
   cursorY = (doc as any).lastAutoTable.finalY + 8;
 
   // II. Datos del Invitado
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: cursorY,
     head: [[{ content: 'II. DATOS DEL INVITADO (A CONCILIAR)', colSpan: 2 }]],
     body: [
@@ -153,8 +153,8 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
       cellPadding: 4
     },
     columnStyles: {
-      0: { fontStyle: 'bold', width: 50, fillColor: LIGHT_BG },
-      1: { width: 120 }
+      0: { fontStyle: 'bold', cellWidth: 50, fillColor: LIGHT_BG },
+      1: { cellWidth: 120 }
     },
     tableLineColor: BORDER_COLOR,
     tableLineWidth: 0.5,
@@ -167,7 +167,7 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
   cursorY = (doc as any).lastAutoTable.finalY + 8;
 
   // III. Materia a Conciliar
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: cursorY,
     head: [[{ content: 'III. MATERIA DE CONCILIACIÓN', colSpan: 2 }]],
     body: [
@@ -186,8 +186,8 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
       cellPadding: 5
     },
     columnStyles: {
-      0: { fontStyle: 'bold', width: 50, fillColor: LIGHT_BG },
-      1: { width: 120, fontStyle: 'bold', textColor: PRIMARY_COLOR }
+      0: { fontStyle: 'bold', cellWidth: 50, fillColor: LIGHT_BG },
+      1: { cellWidth: 120, fontStyle: 'bold', textColor: PRIMARY_COLOR }
     },
     tableLineColor: BORDER_COLOR,
     tableLineWidth: 0.5,
@@ -200,7 +200,7 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
   cursorY = (doc as any).lastAutoTable.finalY + 8;
 
   // IV. Hechos / Detalles
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: cursorY,
     head: [['IV. DESCRIPCIÓN DE LA CONTROVERSIA (HECHOS)']],
     body: [
@@ -324,7 +324,7 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string, 
   cursorY += (introLines.length * 5) + 6;
 
   // I. Partes Involucradas (Grilla elegante)
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: cursorY,
     head: [[{ content: 'I. PARTES DEL PROCEDIMIENTO', colSpan: 2 }]],
     body: [
@@ -344,8 +344,8 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string, 
       cellPadding: 4
     },
     columnStyles: {
-      0: { fontStyle: 'bold', width: 45, fillColor: LIGHT_BG },
-      1: { width: 125 }
+      0: { fontStyle: 'bold', cellWidth: 45, fillColor: LIGHT_BG },
+      1: { cellWidth: 125 }
     },
     tableLineColor: BORDER_COLOR,
     tableLineWidth: 0.5,
@@ -358,7 +358,7 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string, 
   cursorY = (doc as any).lastAutoTable.finalY + 6;
 
   // II. Materia y Hechos
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: cursorY,
     head: [[{ content: 'II. MATERIA Y HECHOS EN CONTROVERSIA', colSpan: 2 }]],
     body: [
@@ -378,8 +378,8 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string, 
       cellPadding: 4
     },
     columnStyles: {
-      0: { fontStyle: 'bold', width: 45, fillColor: LIGHT_BG },
-      1: { width: 125 }
+      0: { fontStyle: 'bold', cellWidth: 45, fillColor: LIGHT_BG },
+      1: { cellWidth: 125 }
     },
     tableLineColor: BORDER_COLOR,
     tableLineWidth: 0.5,
@@ -410,7 +410,7 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string, 
     }
   }
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: cursorY,
     head: [[{ content: `III. RESULTADO: ${subtituloResultado}`, colSpan: 2 }]],
     body: [
@@ -430,8 +430,8 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string, 
       cellPadding: 4
     },
     columnStyles: {
-      0: { fontStyle: 'bold', width: 45, fillColor: LIGHT_BG },
-      1: { width: 125 }
+      0: { fontStyle: 'bold', cellWidth: 45, fillColor: LIGHT_BG },
+      1: { cellWidth: 125 }
     },
     tableLineColor: BORDER_COLOR,
     tableLineWidth: 0.5,

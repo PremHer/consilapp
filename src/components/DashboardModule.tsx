@@ -576,18 +576,23 @@ const DashboardModule = () => {
                   {selectedExp.estado === 'AUDIENCIA' && selectedExp.fechaAudiencia ? (
                     <button 
                       onClick={async () => {
-                        const m = await import('../utils/pdfGenerator');
-                        const sesion = selectedExp.sesionActual || 1;
-                        const requiresNextSession = (resultadoAudiencia === 'INASISTENCIA_UNA_PARTE' && sesion === 1) || resultadoAudiencia === 'ACUERDO_PARCIAL';
-                        
-                        m.generateActaFinalPDF(selectedExp, resultadoAudiencia, inasistente, sesion);
-                        
-                        if (requiresNextSession) {
-                           await useStore.getState().avanzarSesion(selectedExp.id);
-                           setSelectedExp(null); // Cerrar modal porque el estado cambia
-                        } else {
-                           await useStore.getState().updateExpedienteStatus(selectedExp.id, 'CONCLUIDO');
-                           setSelectedExp(null);
+                        try {
+                          const m = await import('../utils/pdfGenerator');
+                          const sesion = selectedExp.sesionActual || 1;
+                          const requiresNextSession = (resultadoAudiencia === 'INASISTENCIA_UNA_PARTE' && sesion === 1) || resultadoAudiencia === 'ACUERDO_PARCIAL';
+                          
+                          m.generateActaFinalPDF(selectedExp, resultadoAudiencia, inasistente, sesion);
+                          
+                          if (requiresNextSession) {
+                             await useStore.getState().avanzarSesion(selectedExp.id);
+                             setSelectedExp(null); // Cerrar modal porque el estado cambia
+                          } else {
+                             await useStore.getState().updateExpedienteStatus(selectedExp.id, 'CONCLUIDO');
+                             setSelectedExp(null);
+                          }
+                        } catch (err) {
+                          console.error("Error al generar PDF de Acta Final:", err);
+                          alert("No se pudo generar el PDF del Acta Final. Por favor intente de nuevo.");
                         }
                       }}
                       className="px-md py-sm bg-primary text-on-primary rounded-lg font-label-lg hover:bg-primary/90 transition-colors flex items-center gap-xs shadow-sm"
@@ -604,7 +609,15 @@ const DashboardModule = () => {
                     <button 
                       onClick={() => {
                         import('../utils/pdfGenerator').then(module => {
-                          module.generateSolicitudPDF(selectedExp);
+                          try {
+                            module.generateSolicitudPDF(selectedExp);
+                          } catch (err) {
+                            console.error("Error al generar PDF de Solicitud:", err);
+                            alert("No se pudo generar el PDF de la Solicitud.");
+                          }
+                        }).catch(err => {
+                          console.error("Error al importar pdfGenerator:", err);
+                          alert("Error al cargar el módulo de generación de PDF.");
                         });
                       }}
                       className="px-md py-sm bg-surface-container-high text-on-surface rounded-lg font-label-lg hover:bg-surface-container-highest transition-colors flex items-center gap-xs border border-outline-variant"
