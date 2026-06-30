@@ -2,282 +2,519 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import type { Expediente } from '../store/useStore';
 
+// Paleta de colores de Bridgelaw para el PDF
+const PRIMARY_COLOR = [143, 0, 13];    // #8f000d (Rojo Primario)
+const SECONDARY_COLOR = [115, 92, 0];  // #735c00 (Dorado/Marrón Secundario)
+const TEXT_COLOR = [28, 27, 27];       // #1c1b1b (Texto Oscuro)
+const BORDER_COLOR = [226, 190, 186];  // #e2beba (Bordes)
+const LIGHT_BG = [252, 249, 248];      // #fcf9f8 (Fondo Claro)
+
+// Helper para dibujar el encabezado de página oficial
+const drawPageHeader = (doc: jsPDF, title: string, subTitle?: string) => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Dibujar franja decorativa roja superior
+  doc.setFillColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+  doc.rect(0, 0, pageWidth, 8, 'F');
+  
+  // Línea dorada sutil abajo de la franja
+  doc.setFillColor(SECONDARY_COLOR[0], SECONDARY_COLOR[1], SECONDARY_COLOR[2]);
+  doc.rect(0, 8, pageWidth, 2, 'F');
+
+  // Textos oficiales centrados
+  doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('REPÚBLICA DEL PERÚ', pageWidth / 2, 20, { align: 'center' });
+  
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('MINISTERIO DE JUSTICIA Y DERECHOS HUMANOS', pageWidth / 2, 24, { align: 'center' });
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+  doc.text('CENTRO DE CONCILIACIÓN EXTRAJUDICIAL "BRIDGELAW"', pageWidth / 2, 30, { align: 'center' });
+  
+  // Línea divisora
+  doc.setDrawColor(BORDER_COLOR[0], BORDER_COLOR[1], BORDER_COLOR[2]);
+  doc.setLineWidth(0.5);
+  doc.line(20, 34, pageWidth - 20, 34);
+
+  // Título del documento
+  doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text(title.toUpperCase(), pageWidth / 2, 43, { align: 'center' });
+
+  if (subTitle) {
+    doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(subTitle, pageWidth / 2, 49, { align: 'center' });
+  }
+
+  return 58; // Siguiente posición Y libre
+};
+
+// Helper para dibujar el pie de página
+const drawPageFooter = (doc: jsPDF, pageNumber: number, totalPages: number) => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  doc.setDrawColor(BORDER_COLOR[0], BORDER_COLOR[1], BORDER_COLOR[2]);
+  doc.setLineWidth(0.5);
+  doc.line(20, pageHeight - 15, pageWidth - 20, pageHeight - 15);
+
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  doc.setTextColor(110, 110, 110);
+  doc.text('Documento oficial emitido por el sistema de conciliación digital Bridgelaw.', 20, pageHeight - 10);
+  doc.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - 20, pageHeight - 10, { align: 'right' });
+};
+
 export const generateSolicitudPDF = (expediente: Expediente) => {
   const doc = new jsPDF();
-
-  // Configuración inicial
   const pageWidth = doc.internal.pageSize.getWidth();
-  const marginLeft = 20;
-  let cursorY = 20;
-
-  // Función para centrar texto
-  const addCenteredText = (text: string, y: number, fontSize = 12, fontStyle = 'normal') => {
-    doc.setFontSize(fontSize);
-    doc.setFont('helvetica', fontStyle);
-    const textWidth = doc.getStringUnitWidth(text) * fontSize / doc.internal.scaleFactor;
-    const textOffset = (pageWidth - textWidth) / 2;
-    doc.text(text, textOffset, y);
-  };
-
-  // Encabezado Oficial
-  addCenteredText('REPÚBLICA DEL PERÚ', cursorY, 14, 'bold');
-  cursorY += 8;
-  addCenteredText('MINISTERIO DE JUSTICIA Y DERECHOS HUMANOS', cursorY, 12, 'bold');
-  cursorY += 8;
-  addCenteredText('CENTRO DE CONCILIACIÓN EXTRAJUDICIAL "BRIDGELAW"', cursorY, 12, 'bold');
-  cursorY += 15;
-
-  // Título del Documento
-  addCenteredText('SOLICITUD DE CONCILIACIÓN EXTRAJUDICIAL', cursorY, 16, 'bold');
-  cursorY += 8;
-  addCenteredText(`EXPEDIENTE N° ${expediente.numero || expediente.id.substring(0, 8)}`, cursorY, 12, 'normal');
-  cursorY += 15;
+  let cursorY = drawPageHeader(
+    doc, 
+    'Solicitud de Conciliación Extrajudicial', 
+    `EXPEDIENTE N° ${expediente.numero || expediente.id.substring(0, 8)}`
+  );
 
   // Fecha y Lugar
-  doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
   const fechaStr = new Date(expediente.fechaCreacion).toLocaleDateString('es-PE', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
-  doc.text(`Lima, ${fechaStr}`, marginLeft, cursorY);
-  cursorY += 15;
-
-  // I. Datos del Solicitante
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('I. DATOS DEL SOLICITANTE', marginLeft, cursorY);
+  doc.text(`Lugar y Fecha: Lima, ${fechaStr}`, 20, cursorY);
   cursorY += 8;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Nombres y Apellidos: ${expediente.solicitanteNom}`, marginLeft, cursorY);
-  cursorY += 6;
-  doc.text(`Documento de Identidad (DNI): ${expediente.solicitanteDni}`, marginLeft, cursorY);
-  cursorY += 6;
-  if (expediente.solicitanteCelular) {
-    doc.text(`Celular: ${expediente.solicitanteCelular}`, marginLeft, cursorY);
-    cursorY += 6;
-  }
-  if (expediente.solicitanteEmail) {
-    doc.text(`Correo Electrónico: ${expediente.solicitanteEmail}`, marginLeft, cursorY);
-    cursorY += 6;
-  }
-  cursorY += 5;
+
+  // I. Datos del Solicitante (usando autoTable para formato profesional de grilla)
+  (doc as any).autoTable({
+    startY: cursorY,
+    head: [[{ content: 'I. DATOS DEL SOLICITANTE', colSpan: 2 }]],
+    body: [
+      ['Nombres y Apellidos:', expediente.solicitanteNom],
+      ['Documento de Identidad:', `DNI N° ${expediente.solicitanteDni}`],
+      ['Teléfono / Celular:', expediente.solicitanteCelular || 'No registrado'],
+      ['Correo Electrónico:', expediente.solicitanteEmail || 'No registrado']
+    ],
+    theme: 'plain',
+    headStyles: {
+      fillColor: PRIMARY_COLOR,
+      textColor: [255, 255, 255],
+      fontSize: 10,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: TEXT_COLOR,
+      cellPadding: 4
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold', width: 50, fillColor: LIGHT_BG },
+      1: { width: 120 }
+    },
+    tableLineColor: BORDER_COLOR,
+    tableLineWidth: 0.5,
+    styles: {
+      lineColor: BORDER_COLOR,
+      lineWidth: 0.5
+    }
+  });
+
+  cursorY = (doc as any).lastAutoTable.finalY + 8;
 
   // II. Datos del Invitado
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('II. DATOS DEL INVITADO (A CONCILIAR)', marginLeft, cursorY);
-  cursorY += 8;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Nombres y Apellidos: ${expediente.invitadoNom}`, marginLeft, cursorY);
-  cursorY += 6;
-  doc.text(`Documento de Identidad (DNI): ${expediente.invitadoDni}`, marginLeft, cursorY);
-  cursorY += 6;
-  if (expediente.invitadoDireccion) {
-    doc.text(`Dirección Notificable: ${expediente.invitadoDireccion}`, marginLeft, cursorY);
-    cursorY += 6;
-  }
-  if (expediente.invitadoCelular) {
-    doc.text(`Celular de Contacto: ${expediente.invitadoCelular}`, marginLeft, cursorY);
-    cursorY += 6;
-  }
-  cursorY += 5;
+  (doc as any).autoTable({
+    startY: cursorY,
+    head: [[{ content: 'II. DATOS DEL INVITADO (A CONCILIAR)', colSpan: 2 }]],
+    body: [
+      ['Nombres y Apellidos:', expediente.invitadoNom],
+      ['Documento de Identidad:', `DNI N° ${expediente.invitadoDni}`],
+      ['Dirección Notificable:', expediente.invitadoDireccion || 'No registrada'],
+      ['Celular de Contacto:', expediente.invitadoCelular || 'No registrado']
+    ],
+    theme: 'plain',
+    headStyles: {
+      fillColor: SECONDARY_COLOR,
+      textColor: [255, 255, 255],
+      fontSize: 10,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: TEXT_COLOR,
+      cellPadding: 4
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold', width: 50, fillColor: LIGHT_BG },
+      1: { width: 120 }
+    },
+    tableLineColor: BORDER_COLOR,
+    tableLineWidth: 0.5,
+    styles: {
+      lineColor: BORDER_COLOR,
+      lineWidth: 0.5
+    }
+  });
+
+  cursorY = (doc as any).lastAutoTable.finalY + 8;
 
   // III. Materia a Conciliar
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('III. MATERIA DE CONCILIACIÓN', marginLeft, cursorY);
-  cursorY += 8;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Tipo de Materia: ${expediente.materia}`, marginLeft, cursorY);
-  cursorY += 15;
-
-  // IV. Hechos
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('IV. DESCRIPCIÓN DE LA CONTROVERSIA (HECHOS)', marginLeft, cursorY);
-  cursorY += 8;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  
-  const detallesLines = doc.splitTextToSize(expediente.detalles || 'No se proporcionaron detalles adicionales de la controversia.', pageWidth - (marginLeft * 2));
-  
-  // Añadir lineas y manejar paginación
-  detallesLines.forEach((line: string) => {
-    if (cursorY > 270) {
-      doc.addPage();
-      cursorY = 20;
+  (doc as any).autoTable({
+    startY: cursorY,
+    head: [[{ content: 'III. MATERIA DE CONCILIACIÓN', colSpan: 2 }]],
+    body: [
+      ['Tipo de Materia:', expediente.materia]
+    ],
+    theme: 'plain',
+    headStyles: {
+      fillColor: PRIMARY_COLOR,
+      textColor: [255, 255, 255],
+      fontSize: 10,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: TEXT_COLOR,
+      cellPadding: 5
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold', width: 50, fillColor: LIGHT_BG },
+      1: { width: 120, fontStyle: 'bold', textColor: PRIMARY_COLOR }
+    },
+    tableLineColor: BORDER_COLOR,
+    tableLineWidth: 0.5,
+    styles: {
+      lineColor: BORDER_COLOR,
+      lineWidth: 0.5
     }
-    doc.text(line, marginLeft, cursorY);
-    cursorY += 6;
   });
-  
-  cursorY += 20;
-  
-  if (cursorY > 240) {
+
+  cursorY = (doc as any).lastAutoTable.finalY + 8;
+
+  // IV. Hechos / Detalles
+  (doc as any).autoTable({
+    startY: cursorY,
+    head: [['IV. DESCRIPCIÓN DE LA CONTROVERSIA (HECHOS)']],
+    body: [
+      [expediente.detalles || 'No se proporcionaron detalles adicionales de la controversia.']
+    ],
+    theme: 'plain',
+    headStyles: {
+      fillColor: SECONDARY_COLOR,
+      textColor: [255, 255, 255],
+      fontSize: 10,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 9.5,
+      textColor: TEXT_COLOR,
+      cellPadding: 8
+    },
+    tableLineColor: BORDER_COLOR,
+    tableLineWidth: 0.5,
+    styles: {
+      lineColor: BORDER_COLOR,
+      lineWidth: 0.5
+    }
+  });
+
+  cursorY = (doc as any).lastAutoTable.finalY + 25;
+
+  // Si queda poco espacio para la firma, pasamos a una nueva página
+  if (cursorY > 235) {
     doc.addPage();
-    cursorY = 40;
+    cursorY = drawPageHeader(doc, 'Solicitud de Conciliación Extrajudicial', `EXPEDIENTE N° ${expediente.numero || expediente.id.substring(0, 8)}`) + 20;
   }
 
-  // Firma
+  // Firmas y Huella Digital (Estructurado profesional)
+  const blockX = pageWidth / 2;
+  
+  // Línea de firma
+  doc.setDrawColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
   doc.setLineWidth(0.5);
-  doc.line(pageWidth / 2 - 40, cursorY, pageWidth / 2 + 40, cursorY);
-  cursorY += 5;
-  addCenteredText('FIRMA DEL SOLICITANTE', cursorY, 11, 'bold');
-  cursorY += 5;
-  addCenteredText(`${expediente.solicitanteNom}`, cursorY, 10, 'normal');
-  cursorY += 4;
-  addCenteredText(`DNI: ${expediente.solicitanteDni}`, cursorY, 10, 'normal');
+  doc.line(blockX - 50, cursorY, blockX + 50, cursorY);
+  
+  // Información de firma
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('FIRMA DEL SOLICITANTE', blockX, cursorY + 5, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.text(expediente.solicitanteNom, blockX, cursorY + 9, { align: 'center' });
+  doc.text(`DNI: ${expediente.solicitanteDni}`, blockX, cursorY + 13, { align: 'center' });
 
-  // Descargar PDF
+  // Recuadro de Huella Digital al costado de la firma
+  doc.setDrawColor(BORDER_COLOR[0], BORDER_COLOR[1], BORDER_COLOR[2]);
+  doc.rect(blockX + 58, cursorY - 18, 20, 25);
+  doc.setFontSize(7);
+  doc.text('HUELLA', blockX + 68, cursorY + 10, { align: 'center' });
+
+  // Dibujar pies de página en todas las páginas generadas
+  const pagesCount = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= pagesCount; i++) {
+    doc.setPage(i);
+    drawPageFooter(doc, i, pagesCount);
+  }
+
+  // Guardar PDF
   doc.save(`Solicitud_Conciliacion_${expediente.numero || expediente.id.substring(0, 8)}.pdf`);
 };
 
 export const generateActaFinalPDF = (expediente: Expediente, resultado: string, inasistente: string = 'INVITADO', sesion: number = 1) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const marginLeft = 20;
-  let cursorY = 20;
-
-  const addCenteredText = (text: string, y: number, fontSize = 12, fontStyle = 'normal') => {
-    doc.setFontSize(fontSize);
-    doc.setFont('helvetica', fontStyle);
-    const textWidth = doc.getStringUnitWidth(text) * fontSize / doc.internal.scaleFactor;
-    const textOffset = (pageWidth - textWidth) / 2;
-    doc.text(text, textOffset, y);
-  };
-
-  // Mapeo de Títulos de Resultados
-  let tituloActa = 'ACTA DE CONCILIACIÓN EXTRAJUDICIAL';
   
-  if (resultado === 'ACUERDO_TOTAL') tituloActa = 'ACTA DE CONCILIACIÓN CON ACUERDO TOTAL';
-  if (resultado === 'ACUERDO_PARCIAL') tituloActa = 'ACTA DE CONCILIACIÓN CON ACUERDO PARCIAL (SUSPENSIÓN DE AUDIENCIA)';
-  if (resultado === 'FALTA_ACUERDO') tituloActa = 'ACTA DE CONCILIACIÓN POR FALTA DE ACUERDO';
+  // Identificar el tipo de documento según el resultado
+  let tituloActa = 'ACTA DE CONCILIACIÓN';
+  let subtituloResultado = 'AUDIENCIA DE CONCILIACIÓN';
   
-  if (resultado === 'INASISTENCIA_UNA_PARTE') {
+  if (resultado === 'ACUERDO_TOTAL') {
+    tituloActa = 'Acta de Conciliación con Acuerdo Total';
+    subtituloResultado = 'ACUERDO TOTAL';
+  } else if (resultado === 'ACUERDO_PARCIAL') {
+    tituloActa = 'Acta de Conciliación con Acuerdo Parcial';
+    subtituloResultado = 'SUSPENSIÓN DE AUDIENCIA';
+  } else if (resultado === 'FALTA_ACUERDO') {
+    tituloActa = 'Acta por Falta de Acuerdo';
+    subtituloResultado = 'FALTA DE ACUERDO';
+  } else if (resultado === 'INASISTENCIA_UNA_PARTE') {
     if (sesion === 1) {
-      tituloActa = `CONSTANCIA DE INASISTENCIA (1RA INVITACIÓN) DEL ${inasistente}`;
+      tituloActa = `Constancia de Inasistencia - 1ra Invitación`;
+      subtituloResultado = `INASISTENCIA DEL ${inasistente}`;
     } else {
-      tituloActa = `ACTA DE CONCILIACIÓN POR INASISTENCIA DE UNA DE LAS PARTES (2DA INVITACIÓN)`;
+      tituloActa = 'Acta por Inasistencia de una de las partes';
+      subtituloResultado = '2DA INVITACIÓN - FRUSTRADA';
     }
+  } else if (resultado === 'INASISTENCIA_AMBAS_PARTES') {
+    tituloActa = 'Acta por Inasistencia de Ambas Partes';
+    subtituloResultado = 'INASISTENCIA DOBLE';
   }
-  
-  if (resultado === 'INASISTENCIA_AMBAS_PARTES') tituloActa = 'ACTA DE CONCILIACIÓN POR INASISTENCIA DE AMBAS PARTES';
 
-  // Encabezado Oficial
-  addCenteredText('REPÚBLICA DEL PERÚ', cursorY, 14, 'bold');
-  cursorY += 8;
-  addCenteredText('MINISTERIO DE JUSTICIA Y DERECHOS HUMANOS', cursorY, 12, 'bold');
-  cursorY += 8;
-  addCenteredText('CENTRO DE CONCILIACIÓN EXTRAJUDICIAL "BRIDGELAW"', cursorY, 12, 'bold');
-  cursorY += 15;
+  let cursorY = drawPageHeader(
+    doc, 
+    tituloActa, 
+    `EXPEDIENTE N° ${expediente.numero || expediente.id.substring(0, 8)}`
+  );
 
-  // Título del Documento
-  addCenteredText(tituloActa, cursorY, 14, 'bold');
-  cursorY += 8;
-  addCenteredText(`EXPEDIENTE N° ${expediente.numero || expediente.id.substring(0, 8)}`, cursorY, 12, 'normal');
-  cursorY += 15;
-
-  // Introducción
-  doc.setFontSize(11);
+  // Cuerpo del acta / Narración formal
   doc.setFont('helvetica', 'normal');
-  
+  doc.setFontSize(9.5);
+  doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+
   const fechaAudienciaStr = expediente.fechaAudiencia 
-    ? new Date(expediente.fechaAudiencia).toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' }) 
+    ? new Date(expediente.fechaAudiencia).toLocaleDateString('es-PE', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }) 
     : '____________________';
 
-  const introText = `En la ciudad de Lima, a las ${fechaAudienciaStr}, ante mí, Conciliador Extrajudicial del Centro de Conciliación "Bridgelaw", se hicieron presentes:`;
-  const introLines = doc.splitTextToSize(introText, pageWidth - (marginLeft * 2));
-  doc.text(introLines, marginLeft, cursorY);
-  cursorY += (introLines.length * 6) + 5;
+  const introText = `En la ciudad de Lima, siendo las ${fechaAudienciaStr}, en las oficinas del Centro de Conciliación Extrajudicial "Bridgelaw", ante mí, el Conciliador formalmente asignado, se da por iniciada la sesión correspondiente a la materia de conciliación, dejando constancia de las siguientes especificaciones técnicas y legales del procedimiento:`;
+  const introLines = doc.splitTextToSize(introText, pageWidth - 40);
+  doc.text(introLines, 20, cursorY);
+  cursorY += (introLines.length * 5) + 6;
 
-  // Partes
-  doc.setFont('helvetica', 'bold');
-  doc.text('I. IDENTIFICACIÓN DE LAS PARTES:', marginLeft, cursorY);
-  cursorY += 8;
-  doc.setFont('helvetica', 'normal');
-  doc.text(`SOLICITANTE: ${expediente.solicitanteNom}, con DNI N° ${expediente.solicitanteDni}`, marginLeft, cursorY);
-  cursorY += 6;
-  doc.text(`INVITADO: ${expediente.invitadoNom}, con DNI N° ${expediente.invitadoDni}`, marginLeft, cursorY);
-  cursorY += 15;
-
-  // Hechos / Materia
-  doc.setFont('helvetica', 'bold');
-  doc.text('II. HECHOS Y MATERIA A CONCILIAR:', marginLeft, cursorY);
-  cursorY += 8;
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Materia: ${expediente.materia}`, marginLeft, cursorY);
-  cursorY += 6;
-  const detallesLines = doc.splitTextToSize(expediente.detalles || 'Descripción de los hechos objeto de conciliación.', pageWidth - (marginLeft * 2));
-  detallesLines.forEach((line: string) => {
-    if (cursorY > 270) { doc.addPage(); cursorY = 20; }
-    doc.text(line, marginLeft, cursorY);
-    cursorY += 6;
-  });
-  cursorY += 10;
-
-  // ACUERDOS / RESULTADO
-  doc.setFont('helvetica', 'bold');
-  if (resultado.includes('ACUERDO')) {
-    doc.text('III. ACUERDOS ADOPTADOS:', marginLeft, cursorY);
-    cursorY += 10;
-    doc.setFont('helvetica', 'italic');
-    doc.text('(Espacio reservado para redactar detalladamente los acuerdos...)', marginLeft, cursorY);
-    // Dejar gran espacio en blanco
-    cursorY += 60;
-  } else {
-    doc.text('III. CONSTANCIA DE RESULTADO:', marginLeft, cursorY);
-    cursorY += 10;
-    doc.setFont('helvetica', 'normal');
-    let constancia = '';
-    if (resultado === 'FALTA_ACUERDO') constancia = 'Se deja constancia que las partes no llegaron a ningún acuerdo respecto a la materia en conflicto tras agotar el diálogo.';
-    if (resultado === 'INASISTENCIA_UNA_PARTE') {
-      const nombreAusente = inasistente === 'SOLICITANTE' ? expediente.solicitanteNom : expediente.invitadoNom;
-      const rolAusente = inasistente === 'SOLICITANTE' ? 'solicitante' : 'invitado(a)';
-      const nombrePresente = inasistente === 'SOLICITANTE' ? expediente.invitadoNom : expediente.solicitanteNom;
-      const rolPresente = inasistente === 'SOLICITANTE' ? 'invitado(a)' : 'solicitante';
-      
-      constancia = `Se deja constancia que a la Audiencia de Conciliación programada para la fecha y hora señalada, se hizo presente el ${rolPresente} don(ña) ${nombrePresente}; y no asistió el ${rolAusente} don(ña) ${nombreAusente}, a pesar de encontrarse válidamente notificado(a).`;
+  // I. Partes Involucradas (Grilla elegante)
+  (doc as any).autoTable({
+    startY: cursorY,
+    head: [[{ content: 'I. PARTES DEL PROCEDIMIENTO', colSpan: 2 }]],
+    body: [
+      ['PARTE SOLICITANTE:', `${expediente.solicitanteNom} (DNI N° ${expediente.solicitanteDni})`],
+      ['PARTE INVITADA:', `${expediente.invitadoNom} (DNI N° ${expediente.invitadoDni})`]
+    ],
+    theme: 'plain',
+    headStyles: {
+      fillColor: PRIMARY_COLOR,
+      textColor: [255, 255, 255],
+      fontSize: 9.5,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: TEXT_COLOR,
+      cellPadding: 4
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold', width: 45, fillColor: LIGHT_BG },
+      1: { width: 125 }
+    },
+    tableLineColor: BORDER_COLOR,
+    tableLineWidth: 0.5,
+    styles: {
+      lineColor: BORDER_COLOR,
+      lineWidth: 0.5
     }
-    if (resultado === 'INASISTENCIA_AMBAS_PARTES') constancia = 'Se deja constancia de la inasistencia de ambas partes a la sesión de conciliación programada, a pesar de estar válidamente notificadas.';
-    
-    const constanciaLines = doc.splitTextToSize(constancia, pageWidth - (marginLeft * 2));
-    doc.text(constanciaLines, marginLeft, cursorY);
-    cursorY += (constanciaLines.length * 6) + 10;
+  });
+
+  cursorY = (doc as any).lastAutoTable.finalY + 6;
+
+  // II. Materia y Hechos
+  (doc as any).autoTable({
+    startY: cursorY,
+    head: [[{ content: 'II. MATERIA Y HECHOS EN CONTROVERSIA', colSpan: 2 }]],
+    body: [
+      ['MATERIA CONCILIAR:', expediente.materia],
+      ['DESCRIPCIÓN:', expediente.detalles || 'Descripción general del conflicto objeto del presente trámite de conciliación extrajudicial.']
+    ],
+    theme: 'plain',
+    headStyles: {
+      fillColor: SECONDARY_COLOR,
+      textColor: [255, 255, 255],
+      fontSize: 9.5,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: TEXT_COLOR,
+      cellPadding: 4
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold', width: 45, fillColor: LIGHT_BG },
+      1: { width: 125 }
+    },
+    tableLineColor: BORDER_COLOR,
+    tableLineWidth: 0.5,
+    styles: {
+      lineColor: BORDER_COLOR,
+      lineWidth: 0.5
+    }
+  });
+
+  cursorY = (doc as any).lastAutoTable.finalY + 6;
+
+  // III. Resultado del Proceso
+  let constancia = '';
+  if (resultado.includes('ACUERDO')) {
+    constancia = `Las partes en conflicto, luego de deliberar y de ser asistidas por el conciliador en la búsqueda de soluciones mutuamente satisfactorias, DECLARAN haber arribado a un acuerdo consensuado que se detalla en el presente documento, comprometiéndose a su fiel cumplimiento según la normatividad vigente.`;
+  } else {
+    if (resultado === 'FALTA_ACUERDO') {
+      constancia = 'Se deja formal constancia que las partes participaron activamente en el diálogo conciliatorio, pero no lograron llegar a un punto de encuentro o acuerdo respecto a las materias en conflicto tras finalizar la audiencia.';
+    } else if (resultado === 'INASISTENCIA_UNA_PARTE') {
+      const nombreAusente = inasistente === 'SOLICITANTE' ? expediente.solicitanteNom : expediente.invitadoNom;
+      const rolAusente = inasistente === 'SOLICITANTE' ? 'SOLICITANTE' : 'INVITADO(A)';
+      const nombrePresente = inasistente === 'SOLICITANTE' ? expediente.invitadoNom : expediente.solicitanteNom;
+      const rolPresente = inasistente === 'SOLICITANTE' ? 'INVITADO(A)' : 'SOLICITANTE';
+      
+      constancia = `Se deja constancia oficial que, habiendo transcurrido el plazo de tolerancia correspondiente a la citación formal, compareció el ${rolPresente} don(ña) ${nombrePresente}; no habiendo asistido a la misma el ${rolAusente} don(ña) ${nombreAusente}, a pesar de estar debidamente notificado(a) en el domicilio correspondiente.`;
+    } else if (resultado === 'INASISTENCIA_AMBAS_PARTES') {
+      constancia = 'Se deja constancia oficial de la inasistencia e incomparecencia de ambas partes involucradas al procedimiento de conciliación programado, a pesar de estar debidamente notificadas conforme a Ley.';
+    }
   }
 
-  // Cierre
-  if (cursorY > 200) { doc.addPage(); cursorY = 20; }
-  doc.setFont('helvetica', 'normal');
-  const cierreText = `Leída que fue la presente acta, las partes manifiestan su conformidad, procediendo a suscribirla y estampar su huella digital en señal de aceptación.`;
-  const cierreLines = doc.splitTextToSize(cierreText, pageWidth - (marginLeft * 2));
-  doc.text(cierreLines, marginLeft, cursorY);
-  cursorY += 40;
+  (doc as any).autoTable({
+    startY: cursorY,
+    head: [[{ content: `III. RESULTADO: ${subtituloResultado}`, colSpan: 2 }]],
+    body: [
+      ['SITUACIÓN LEGAL:', resultado.includes('ACUERDO') ? 'AUDIENCIA EXITOSA (CON ACUERDO)' : 'AUDIENCIA FRUSTRADA / CONCLUIDA SIN ACUERDO'],
+      ['DECLARACIÓN / HECHOS:', constancia]
+    ],
+    theme: 'plain',
+    headStyles: {
+      fillColor: PRIMARY_COLOR,
+      textColor: [255, 255, 255],
+      fontSize: 9.5,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: TEXT_COLOR,
+      cellPadding: 4
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold', width: 45, fillColor: LIGHT_BG },
+      1: { width: 125 }
+    },
+    tableLineColor: BORDER_COLOR,
+    tableLineWidth: 0.5,
+    styles: {
+      lineColor: BORDER_COLOR,
+      lineWidth: 0.5
+    }
+  });
 
-  // Firmas
-  const firmY = cursorY;
-  doc.setLineWidth(0.5);
-  // Firma Solicitante
-  doc.line(marginLeft, firmY, marginLeft + 60, firmY);
-  doc.setFontSize(10);
-  doc.text('FIRMA DEL SOLICITANTE', marginLeft + 5, firmY + 5);
-  doc.text(`DNI: ${expediente.solicitanteDni}`, marginLeft + 5, firmY + 10);
+  cursorY = (doc as any).lastAutoTable.finalY + 8;
+
+  // Cierre de Acta
+  const cierreText = `Leída que fue la presente acta de conciliación, las partes manifestaron su plena conformidad con lo aquí establecido, procediendo a firmar de manera formal y estampar su huella dactilar derecha en señal de conformidad ante el conciliador que autoriza y da fe.`;
+  const cierreLines = doc.splitTextToSize(cierreText, pageWidth - 40);
   
-  // Firma Invitado
-  doc.line(pageWidth - marginLeft - 60, firmY, pageWidth - marginLeft, firmY);
-  doc.text('FIRMA DEL INVITADO', pageWidth - marginLeft - 55, firmY + 5);
-  doc.text(`DNI: ${expediente.invitadoDni}`, pageWidth - marginLeft - 55, firmY + 10);
+  if (cursorY > 210) {
+    doc.addPage();
+    cursorY = drawPageHeader(doc, tituloActa, `EXPEDIENTE N° ${expediente.numero || expediente.id.substring(0, 8)}`) + 10;
+  }
+  
+  doc.text(cierreLines, 20, cursorY);
+  cursorY += (cierreLines.length * 5) + 15;
 
-  cursorY += 40;
-  // Firma Conciliador (Centro)
-  const centroX = (pageWidth / 2);
-  doc.line(centroX - 30, cursorY, centroX + 30, cursorY);
-  addCenteredText('CONCILIADOR EXTRAJUDICIAL', cursorY + 5, 10, 'bold');
-  addCenteredText('Centro de Conciliación Bridgelaw', cursorY + 10, 10, 'normal');
+  // Bloque de Firmas Solicitante e Invitado
+  if (cursorY > 220) {
+    doc.addPage();
+    cursorY = drawPageHeader(doc, tituloActa, `EXPEDIENTE N° ${expediente.numero || expediente.id.substring(0, 8)}`) + 20;
+  }
+
+  const firmY = cursorY;
+  doc.setDrawColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+  doc.setLineWidth(0.5);
+
+  // Firma Solicitante (Izquierda)
+  doc.line(20, firmY, 75, firmY);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FIRMA DEL SOLICITANTE', 20, firmY + 5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(expediente.solicitanteNom, 20, firmY + 9);
+  doc.text(`DNI: ${expediente.solicitanteDni}`, 20, firmY + 13);
+  doc.setDrawColor(BORDER_COLOR[0], BORDER_COLOR[1], BORDER_COLOR[2]);
+  doc.rect(80, firmY - 15, 12, 17); // Huella Solicitante
+  doc.setFontSize(6);
+  doc.text('HUELLA', 86, firmY + 5, { align: 'center' });
+
+  // Firma Invitado (Derecha)
+  doc.setDrawColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+  doc.line(115, firmY, 170, firmY);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FIRMA DEL INVITADO', 115, firmY + 5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(expediente.invitadoNom, 115, firmY + 9);
+  doc.text(`DNI: ${expediente.invitadoDni}`, 115, firmY + 13);
+  doc.setDrawColor(BORDER_COLOR[0], BORDER_COLOR[1], BORDER_COLOR[2]);
+  doc.rect(175, firmY - 15, 12, 17); // Huella Invitado
+  doc.setFontSize(6);
+  doc.text('HUELLA', 181, firmY + 5, { align: 'center' });
+
+  cursorY += 28;
+
+  // Firma del Conciliador (Abajo al centro)
+  if (cursorY > 240) {
+    doc.addPage();
+    cursorY = drawPageHeader(doc, tituloActa, `EXPEDIENTE N° ${expediente.numero || expediente.id.substring(0, 8)}`) + 30;
+  }
+
+  const centroX = pageWidth / 2;
+  doc.setDrawColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+  doc.line(centroX - 35, cursorY, centroX + 35, cursorY);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CONCILIADOR EXTRAJUDICIAL', centroX, cursorY + 5, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.text('Centro de Conciliación Bridgelaw', centroX, cursorY + 9, { align: 'center' });
+
+  // Numerar páginas del documento al final
+  const pagesCount = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= pagesCount; i++) {
+    doc.setPage(i);
+    drawPageFooter(doc, i, pagesCount);
+  }
 
   doc.save(`Acta_Final_Conciliacion_${expediente.numero || expediente.id.substring(0, 8)}.pdf`);
 };
