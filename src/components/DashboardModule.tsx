@@ -79,11 +79,11 @@ const DashboardModule = () => {
         <meta charset="utf-8">
         <style>
           table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; }
-          th { background-color: #8f000d; color: #ffffff; font-weight: bold; border: 1px solid #dcd9d9; padding: 10px; text-align: left; }
-          td { border: 1px solid #e5e2e1; padding: 8px; vertical-align: middle; }
-          .tr-even { background-color: #fcf9f8; }
-          .title-row { font-size: 15pt; font-weight: bold; color: #8f000d; text-align: center; padding: 12px; }
-          .meta-row { font-size: 9pt; color: #5a403e; font-style: italic; }
+          th { background-color: #13543b; color: #ffffff; font-weight: bold; border: 1px solid #bfc9c0; padding: 10px; text-align: left; }
+          td { border: 1px solid #eaece9; padding: 8px; vertical-align: middle; }
+          .tr-even { background-color: #f1f3f0; }
+          .title-row { font-size: 15pt; font-weight: bold; color: #13543b; text-align: center; padding: 12px; }
+          .meta-row { font-size: 9pt; color: #404943; font-style: italic; }
         </style>
       </head>
       <body>
@@ -103,7 +103,7 @@ const DashboardModule = () => {
           <tbody>
             ${filteredExpedientes.map((exp, i) => `
               <tr class="${i % 2 === 0 ? '' : 'tr-even'}">
-                <td style="font-weight: bold; color: #8f000d;">${exp.numero || exp.id}</td>
+                <td style="font-weight: bold; color: #13543b;">${exp.numero || exp.id}</td>
                 <td style="${getEstadoStyle(exp.estado)}">${estadoLabels[exp.estado] || exp.estado}</td>
                 <td>${exp.materia}</td>
                 <td>${exp.solicitanteNom}</td>

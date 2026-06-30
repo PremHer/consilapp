@@ -3,11 +3,11 @@ import 'jspdf-autotable';
 import type { Expediente } from '../store/useStore';
 
 // Paleta de colores de Bridgelaw para el PDF
-const PRIMARY_COLOR = [143, 0, 13];    // #8f000d (Rojo Primario)
-const SECONDARY_COLOR = [115, 92, 0];  // #735c00 (Dorado/Marrón Secundario)
-const TEXT_COLOR = [28, 27, 27];       // #1c1b1b (Texto Oscuro)
-const BORDER_COLOR = [226, 190, 186];  // #e2beba (Bordes)
-const LIGHT_BG = [252, 249, 248];      // #fcf9f8 (Fondo Claro)
+const PRIMARY_COLOR = [19, 84, 59];     // #13543b (Verde Esmeralda Primario)
+const SECONDARY_COLOR = [184, 144, 71]; // #b89047 (Dorado Secundario)
+const TEXT_COLOR = [25, 28, 26];        // #191c1a (Texto Oscuro)
+const BORDER_COLOR = [191, 201, 192];   // #bfc9c0 (Bordes)
+const LIGHT_BG = [241, 243, 240];       // #f1f3f0 (Fondo Claro)
 
 // Helper para dibujar el encabezado de página oficial
 const drawPageHeader = (doc: jsPDF, title: string, subTitle?: string) => {
