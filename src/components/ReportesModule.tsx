@@ -22,14 +22,14 @@ const ReportesModule = () => {
       .sort((a, b) => b.count - a.count);
   }, [expedientes, total]);
 
-  const materiaColors = ['#13543b', '#b89047', '#444545', '#216a4e', '#e5c158', '#bfc9c0'];
+  const materiaColors = ['#0a3d62', '#b89047', '#444545', '#0f4c81', '#e5c158', '#bfcbd4'];
 
   // Distribución por estado
   const estadoConfig = [
-    { key: 'RECIBIDO', label: 'Recibido', color: '#bfc9c0' },
+    { key: 'RECIBIDO', label: 'Recibido', color: '#bfcbd4' },
     { key: 'CALIFICADO', label: 'Calificado', color: '#b89047' },
     { key: 'INVITACIONES', label: 'Invitaciones', color: '#e5c158' },
-    { key: 'AUDIENCIA', label: 'Audiencia', color: '#13543b' },
+    { key: 'AUDIENCIA', label: 'Audiencia', color: '#0a3d62' },
     { key: 'CONCLUIDO', label: 'Concluido', color: '#4caf50' },
   ];
 
@@ -101,11 +101,11 @@ const ReportesModule = () => {
         <meta charset="utf-8">
         <style>
           table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; }
-          th { background-color: #13543b; color: #ffffff; font-weight: bold; border: 1px solid #bfc9c0; padding: 10px; text-align: left; }
-          td { border: 1px solid #eaece9; padding: 8px; vertical-align: middle; }
-          .tr-even { background-color: #f1f3f0; }
-          .title-row { font-size: 16pt; font-weight: bold; color: #13543b; text-align: center; padding: 15px; }
-          .meta-row { font-size: 10pt; color: #404943; font-style: italic; }
+          th { background-color: #0a3d62; color: #ffffff; font-weight: bold; border: 1px solid #bfcbd4; padding: 10px; text-align: left; }
+          td { border: 1px solid #eaeef2; padding: 8px; vertical-align: middle; }
+          .tr-even { background-color: #f0f2f5; }
+          .title-row { font-size: 16pt; font-weight: bold; color: #0a3d62; text-align: center; padding: 15px; }
+          .meta-row { font-size: 10pt; color: #3e454a; font-style: italic; }
         </style>
       </head>
       <body>
@@ -125,7 +125,7 @@ const ReportesModule = () => {
           <tbody>
             ${expedientes.map((exp, i) => `
               <tr class="${i % 2 === 0 ? '' : 'tr-even'}">
-                <td style="font-weight: bold; color: #13543b;">${exp.numero || exp.id}</td>
+                <td style="font-weight: bold; color: #0a3d62;">${exp.numero || exp.id}</td>
                 <td style="${getEstadoStyle(exp.estado)}">${estadoLabels[exp.estado] || exp.estado}</td>
                 <td>${exp.materia}</td>
                 <td>${exp.solicitanteNom}</td>
