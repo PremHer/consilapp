@@ -269,12 +269,6 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ 
-      model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-      }
-    });
     
     // System prompt para actuar como experto en conciliación peruana y retornar JSON
     const systemInstruction = `Eres un abogado conciliador experto en Perú, encargado del 'Triaje Legal'. Tu misión es orientar al ciudadano si su caso es conciliable de manera MUY empática y sencilla.
@@ -285,17 +279,50 @@ Debes responder en JSON estricto con esta estructura:
   "response": "Explicación en lenguaje MUY sencillo, amigable y empático (máximo 80 palabras). Usa párrafos cortos separados por dobles saltos de línea. Usa emojis para hacerlo amigable. Usa viñetas (•) si debes listar requisitos. Usa negritas **texto** para resaltar lo más importante. Debe ser facilísimo de leer para cualquier persona de cualquier nivel educativo."
 }`;
     
-    const chat = model.startChat({
-      history: history.map((msg: any) => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }],
-      })),
-    });
+    // Lista de modelos que intentaremos de forma secuencial en caso de error (429 cuota o 404 no encontrado)
+    const modelsToTry = [];
+    if (process.env.GEMINI_MODEL) {
+      modelsToTry.push(process.env.GEMINI_MODEL);
+    }
+    modelsToTry.push("gemini-2.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-1.5-pro-latest", "gemini-1.5-pro");
 
-    const result = await chat.sendMessage(systemInstruction + "\n\nPregunta del usuario: " + message);
-    const jsonStr = result.response.text();
+    let jsonStr = '';
+    let success = false;
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`🤖 Intentando procesar triaje legal con el modelo: ${modelName}...`);
+        const model = genAI.getGenerativeModel({ 
+          model: modelName,
+          generationConfig: {
+            responseMimeType: "application/json",
+          }
+        });
+
+        const chat = model.startChat({
+          history: history.map((msg: any) => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }],
+          })),
+        });
+
+        const result = await chat.sendMessage(systemInstruction + "\n\nPregunta del usuario: " + message);
+        jsonStr = result.response.text();
+        success = true;
+        console.log(`✅ Triaje legal completado con éxito usando el modelo: ${modelName}`);
+        break; // Éxito, salir del loop
+      } catch (err: any) {
+        console.warn(`⚠️ Error con el modelo ${modelName}:`, err.message || err);
+        lastError = err;
+      }
+    }
+
+    if (!success) {
+      throw lastError || new Error("Todos los modelos de Gemini fallaron.");
+    }
+
     const data = JSON.parse(jsonStr);
-    
     res.json({ 
       response: data.response, 
       isConciliable: data.isConciliable,
