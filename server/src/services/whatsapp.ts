@@ -96,18 +96,25 @@ export async function connectToWhatsApp() {
     if (connection === 'close') {
       const error = lastDisconnect?.error as Boom;
       const statusCode = error?.output?.statusCode;
-      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+      const isLoggedOut = statusCode === DisconnectReason.loggedOut;
       
       isConnected = false;
-      
-      if (statusCode === DisconnectReason.restartRequired) {
-        console.log('🔄 Reiniciando conexión de WhatsApp de forma transparente (Código 515)...');
+      console.error('⚠️ Conexión de WhatsApp cerrada. Código:', statusCode);
+
+      if (isLoggedOut) {
+        console.log('🧹 La sesión fue desvinculada o expiró (401). Limpiando credenciales antiguas...');
+        prisma.whatsAppSession.deleteMany().then(() => {
+          console.log('🔄 Credenciales eliminadas. Iniciando nueva vinculación para generar código QR...');
+          setTimeout(connectToWhatsApp, 2000);
+        }).catch(err => {
+          console.error('❌ Error al limpiar sesión de WhatsApp en base de datos:', err);
+          setTimeout(connectToWhatsApp, 5000);
+        });
       } else {
-        console.error('⚠️ Conexión de WhatsApp cerrada. Código:', statusCode);
-      }
-      
-      if (shouldReconnect) {
-        setTimeout(connectToWhatsApp, 2000);
+        // Para otros errores (p.ej. código 500, problemas de red, reinicios de socket), reintentar
+        const delay = statusCode === DisconnectReason.restartRequired ? 1000 : 5000;
+        console.log(`🔄 Reintentando conectar en ${delay/1000} segundos...`);
+        setTimeout(connectToWhatsApp, delay);
       }
     } else if (connection === 'open') {
       console.log('✅ Bot de WhatsApp conectado y listo para enviar invitaciones.');
