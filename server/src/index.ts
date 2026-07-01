@@ -284,7 +284,7 @@ Debes responder en JSON estricto con esta estructura:
     if (process.env.GEMINI_MODEL) {
       modelsToTry.push(process.env.GEMINI_MODEL);
     }
-    modelsToTry.push("gemini-2.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-1.5-pro-latest", "gemini-1.5-pro");
+    modelsToTry.push("gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash");
 
     let jsonStr = '';
     let success = false;
