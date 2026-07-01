@@ -257,7 +257,7 @@ export const generateSolicitudPDF = (expediente: Expediente) => {
   doc.text('HUELLA', blockX + 68, cursorY + 10, { align: 'center' });
 
   // Dibujar pies de página en todas las páginas generadas
-  const pagesCount = (doc as any).internal.getNumberOfPages();
+  const pagesCount = doc.getNumberOfPages();
   for (let i = 1; i <= pagesCount; i++) {
     doc.setPage(i);
     drawPageFooter(doc, i, pagesCount);
@@ -510,7 +510,7 @@ export const generateActaFinalPDF = (expediente: Expediente, resultado: string, 
   doc.text('Centro de Conciliación Bridgelaw', centroX, cursorY + 9, { align: 'center' });
 
   // Numerar páginas del documento al final
-  const pagesCount = (doc as any).internal.getNumberOfPages();
+  const pagesCount = doc.getNumberOfPages();
   for (let i = 1; i <= pagesCount; i++) {
     doc.setPage(i);
     drawPageFooter(doc, i, pagesCount);

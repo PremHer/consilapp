@@ -620,7 +620,7 @@ const DashboardModule = () => {
                           alert("Error al cargar el módulo de generación de PDF.");
                         });
                       }}
-                      className="px-md py-sm bg-surface-container-high text-on-surface rounded-lg font-label-lg hover:bg-surface-container-highest transition-colors flex items-center gap-xs border border-outline-variant"
+                      className="px-md py-sm bg-surface-container-lowest text-primary border border-primary hover:bg-primary/5 rounded-lg font-label-lg transition-colors flex items-center gap-xs shadow-sm"
                     >
                       <span className="material-symbols-outlined">picture_as_pdf</span>
                       Descargar PDF
