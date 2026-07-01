@@ -5,6 +5,33 @@ import { useStore, type Expediente } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import { generateSolicitudPDF, generateActaFinalPDF } from '../utils/pdfGenerator';
 
+const getSimulatedDocs = (exp: Expediente) => {
+  const list = [
+    { id: 'dni', name: `DNI_Solicitante_${exp.solicitanteDni}.pdf`, label: 'Copia DNI del Solicitante', size: '1.2 MB', icon: 'badge' },
+    { id: 'voucher', name: `Voucher_Pago_Derecho_Tramite.jpg`, label: 'Comprobante de Pago (Arancel)', size: '840 KB', icon: 'payments' },
+  ];
+
+  switch(exp.materia) {
+    case 'ALIMENTOS':
+      list.push({ id: 'especifico', name: `Partida_Nacimiento_Hijo_Menor.pdf`, label: 'Partida de Nacimiento de Menor', size: '1.8 MB', icon: 'child_care' });
+      break;
+    case 'VISITAS_TENENCIA':
+      list.push({ id: 'especifico', name: `Partida_Nacimiento_Menores.pdf`, label: 'Partida de Nacimiento del Menor', size: '1.9 MB', icon: 'child_friendly' });
+      break;
+    case 'DESALOJO':
+      list.push({ id: 'especifico', name: `Copia_Literal_Propiedad_Contrato.pdf`, label: 'Contrato de Arrendamiento o Copia Literal', size: '3.4 MB', icon: 'home' });
+      break;
+    case 'DEUDAS':
+      list.push({ id: 'especifico', name: `Letras_Cambio_Evidencia_Deuda.pdf`, label: 'Letra de Cambio o Factura', size: '2.1 MB', icon: 'request_quote' });
+      break;
+    default:
+      list.push({ id: 'especifico', name: `Documento_Probatorio_Principal.pdf`, label: 'Sustento del Conflicto', size: '2.0 MB', icon: 'description' });
+  }
+
+  list.push({ id: 'pruebas', name: `Chats_WhatsApp_Evidencia.pdf`, label: 'Medios Probatorios Adicionales', size: '4.5 MB', icon: 'forum' });
+  return list;
+};
+
 const DashboardModule = () => {
   const expedientes = useStore((state) => state.expedientes);
   const searchQuery = useStore((state) => state.searchQuery);
@@ -16,6 +43,7 @@ const DashboardModule = () => {
   const [resultadoAudiencia, setResultadoAudiencia] = React.useState('ACUERDO_TOTAL');
   const [inasistente, setInasistente] = React.useState('INVITADO');
   const [confirmAction, setConfirmAction] = React.useState<{ message: string; onConfirm: () => void } | null>(null);
+  const [docValidationState, setDocValidationState] = React.useState<Record<string, Record<string, boolean>>>({});
   const navigate = useNavigate();
 
   // Función utilitaria para Semáforo de Plazos Legales
@@ -486,6 +514,79 @@ const DashboardModule = () => {
                       <span className="font-label-md text-on-surface">{selectedExp.invitadoCelular}</span>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Descripción / De qué trata el caso */}
+              <div className="border border-outline-variant rounded-lg overflow-hidden">
+                <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center gap-sm">
+                  <span className="material-symbols-outlined text-primary">description</span>
+                  <h4 className="font-label-lg text-primary">Descripción del Conflicto (Hechos)</h4>
+                </div>
+                <div className="p-md bg-surface-container-lowest text-body-md text-on-surface whitespace-pre-line leading-relaxed">
+                  {selectedExp.detalles || "No se especificaron detalles adicionales para este caso."}
+                </div>
+              </div>
+
+              {/* Documentos subidos y su validación */}
+              <div className="border border-outline-variant rounded-lg overflow-hidden">
+                <div className="bg-surface-container px-md py-sm border-b border-outline-variant flex items-center justify-between">
+                  <div className="flex items-center gap-sm">
+                    <span className="material-symbols-outlined text-primary">folder_open</span>
+                    <h4 className="font-label-lg text-primary">Documentación Presentada</h4>
+                  </div>
+                  <span className="text-label-sm text-primary font-bold">
+                    {Object.values(docValidationState[selectedExp.id] || {}).filter(Boolean).length} de {getSimulatedDocs(selectedExp).length} Validados
+                  </span>
+                </div>
+                <div className="p-sm bg-surface-container-lowest flex flex-col gap-sm">
+                  {getSimulatedDocs(selectedExp).map((doc) => {
+                    const isApproved = !!docValidationState[selectedExp.id]?.[doc.id];
+                    return (
+                      <div key={doc.id} className="flex items-center justify-between p-sm bg-surface-container-low border border-outline-variant/30 rounded-lg hover:border-primary/30 transition-all">
+                        <div className="flex items-center gap-sm min-w-0 flex-1">
+                          <span className="material-symbols-outlined text-primary text-[22px]">{doc.icon}</span>
+                          <div className="min-w-0">
+                            <p className="text-label-md font-bold text-on-surface truncate">{doc.label}</p>
+                            <p className="text-[10px] text-on-surface-variant font-mono truncate">{doc.name} • {doc.size}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-sm ml-md">
+                          <button 
+                            onClick={() => alert(`Previsualizando archivo: ${doc.name}\n(Vista previa en producción habilitada)`)} 
+                            className="p-xs text-on-surface-variant hover:text-primary rounded-full hover:bg-surface-container-high transition-colors"
+                            title="Ver documento"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">visibility</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDocValidationState(prev => {
+                                const expDocs = prev[selectedExp.id] || {};
+                                return {
+                                  ...prev,
+                                  [selectedExp.id]: {
+                                    ...expDocs,
+                                    [doc.id]: !expDocs[doc.id]
+                                  }
+                                };
+                              });
+                            }}
+                            className={`flex items-center gap-xs px-sm py-xs rounded text-[11px] font-bold border transition-all ${
+                              isApproved 
+                                ? 'bg-green-500/10 text-green-600 border-green-500/30' 
+                                : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[14px]">
+                              {isApproved ? 'check_circle' : 'pending'}
+                            </span>
+                            {isApproved ? 'Validado' : 'Validar'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
