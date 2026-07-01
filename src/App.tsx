@@ -281,7 +281,7 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
             <div className="w-full space-y-sm bg-surface-container-lowest p-md rounded-lg border border-outline-variant/50">
               <div className="flex justify-between">
                 <span className="text-body-sm text-on-surface-variant">Sede:</span>
-                <span className="font-label-md">Lima Cercado</span>
+                <span className="font-label-md">Moyobamba San Martin</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-body-sm text-on-surface-variant">Resolución Ministerial:</span>

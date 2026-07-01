@@ -141,7 +141,7 @@ const DashboardModule = () => {
           <span className="material-symbols-outlined text-primary text-headline-md">gavel</span>
           <div>
             <h2 className="font-headline-md text-headline-md text-primary">Bridgelaw</h2>
-            <p className="font-body-md text-on-surface-variant">Sede Central - Lima Cercado</p>
+            <p className="font-body-md text-on-surface-variant">Sede Central - Moyobamba San Martin</p>
           </div>
         </div>
         <button onClick={() => navigate('/admisibilidad')} className="flex items-center gap-sm bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 active:scale-95 transition-all shadow-md">
