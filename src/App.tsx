@@ -240,8 +240,9 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
         </div>
       )}
       {isPublic && (
-        <div className="ml-auto flex gap-md">
-          <Link to="/" className="text-label-lg font-bold text-primary hover:underline">Inicio</Link>
+        <div className="ml-auto flex gap-md items-center">
+          <Link to="/" className="text-label-lg font-bold text-on-surface hover:text-primary transition-colors">Inicio</Link>
+          <Link to="/seguimiento" className="text-label-lg font-bold text-primary hover:underline">Consultar Estado</Link>
           <Link to="/login" className="text-label-lg font-bold text-on-surface-variant hover:text-primary transition-colors">Portal Interno</Link>
         </div>
       )}
@@ -355,6 +356,7 @@ function App() {
         {/* Rutas Públicas */}
         <Route path="/" element={<PublicLayout><DiagnosticModule /></PublicLayout>} />
         <Route path="/admisibilidad" element={<PublicLayout><AdmisibilidadModule /></PublicLayout>} />
+        <Route path="/seguimiento" element={<PublicLayout><SeguimientoModule /></PublicLayout>} />
         <Route path="/seguimiento/:numero" element={<PublicLayout><SeguimientoModule /></PublicLayout>} />
         
         {/* Ruta de Login (Sin Layout) */}

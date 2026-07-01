@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { UploadCloud, FileCheck, CheckCircle, ArrowRight, User, Users, FileText } from 'lucide-react';
+import { UploadCloud, FileCheck, CheckCircle, ArrowRight, User, Users, FileText, Search } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 const AdmisibilidadModule = () => {
@@ -33,6 +33,7 @@ const AdmisibilidadModule = () => {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [createdExp, setCreatedExp] = useState<any>(null);
 
   // Auto-completar DNI Solicitante
   useEffect(() => {
@@ -126,7 +127,7 @@ const AdmisibilidadModule = () => {
     setIsSubmitting(true);
     
     try {
-      await addExpediente({
+      const newExp = await addExpediente({
         materia: materia.toUpperCase(),
         detalles,
         solicitanteNom: nombres,
@@ -138,6 +139,7 @@ const AdmisibilidadModule = () => {
         invitadoCelular: celularInvitado || undefined,
         invitadoDireccion
       });
+      setCreatedExp(newExp);
       setIsSubmitted(true);
     } catch (err: any) {
       setErrorSubmit(err.message || "Error desconocido al guardar el expediente.");
@@ -147,19 +149,38 @@ const AdmisibilidadModule = () => {
   };
 
   if (isSubmitted) {
+    const trackingCode = createdExp?.numero || (createdExp?.id ? createdExp.id.substring(0, 8) : '2026-003');
     return (
-      <div className="max-w-3xl mx-auto pt-xl px-md text-center pb-xl">
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-surface-container-lowest border-2 border-green-600 rounded-xl shadow-sm p-xl">
-          <CheckCircle size={80} className="text-green-600 mx-auto mb-md" />
-          <h2 className="text-green-600 font-headline-lg mb-md">¡Solicitud Enviada con Éxito!</h2>
-          <p className="text-body-lg text-on-surface-variant mb-xl">
-            Su solicitud de conciliación y sus documentos han sido cargados. Nuestro equipo validará el voucher y los anexos en un plazo máximo de 1 día hábil.
+      <div className="max-w-2xl mx-auto pt-xl px-md text-center pb-xl">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg p-xl flex flex-col items-center">
+          <div className="w-20 h-20 bg-primary-container text-primary rounded-full flex items-center justify-center mb-md">
+            <CheckCircle size={48} />
+          </div>
+          <h2 className="text-primary font-headline-md mb-sm">¡Solicitud Enviada con Éxito!</h2>
+          <p className="text-body-md text-on-surface-variant mb-lg">
+            Su solicitud de conciliación ha sido cargada correctamente en nuestro sistema. El equipo de admisiones validará sus documentos y el voucher en un plazo máximo de 1 día hábil.
           </p>
-          <div className="flex justify-center gap-md">
-            <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 shadow-md transition-colors" onClick={() => navigate('/dashboard')}>
-              Ir al Tablero del Conciliador
+
+          <div className="bg-surface-container border border-outline-variant p-lg rounded-xl mb-xl w-full max-w-md">
+            <p className="text-label-sm text-on-surface-variant mb-xs font-bold uppercase tracking-wider">Código de Seguimiento</p>
+            <p className="font-headline-sm text-primary tracking-wide text-3xl font-extrabold select-all mb-sm">{trackingCode}</p>
+            <p className="text-body-sm text-on-surface-variant">
+              Guarde este código para consultar el avance del trámite en cualquier momento.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-md w-full justify-center">
+            <button 
+              className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:opacity-90 shadow-md transition-all flex items-center justify-center gap-sm"
+              onClick={() => navigate(`/seguimiento/${trackingCode}`)}
+            >
+              <Search size={18} />
+              Hacer Seguimiento de mi Solicitud
             </button>
-            <button className="border border-outline-variant px-lg py-sm rounded-lg font-label-lg text-on-surface hover:bg-surface-container transition-colors" onClick={() => navigate('/')}>
+            <button 
+              className="border border-outline-variant px-lg py-sm rounded-lg font-label-lg text-on-surface hover:bg-surface-container transition-colors"
+              onClick={() => navigate('/')}
+            >
               Volver al Inicio
             </button>
           </div>

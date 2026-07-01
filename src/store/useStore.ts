@@ -27,17 +27,16 @@ interface StoreState {
   expedientes: Expediente[];
   isLoading: boolean;
   fetchExpedientes: () => Promise<void>;
-  addExpediente: (expediente: Partial<Expediente>) => Promise<void>;
+  addExpediente: (expediente: Partial<Expediente>) => Promise<Expediente>;
   updateExpedienteStatus: (id: string, nuevoEstado: Expediente['estado']) => Promise<void>;
   agendarAudiencia: (id: string, fechaAudiencia: string) => Promise<void>;
   avanzarSesion: (id: string) => Promise<void>;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   filterCategoria: string;
-  setFilterCategoria: (categoria: string) => void;
+  setFilterCategoria: (cat: string) => void;
 }
 
-// Usar la URL de producción si existe, sino localhost
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const useStore = create<StoreState>((set) => ({
@@ -46,7 +45,7 @@ export const useStore = create<StoreState>((set) => ({
   searchQuery: '',
   setSearchQuery: (query) => set({ searchQuery: query }),
   filterCategoria: 'Todas las materias',
-  setFilterCategoria: (categoria) => set({ filterCategoria: categoria }),
+  setFilterCategoria: (cat) => set({ filterCategoria: cat }),
   
   fetchExpedientes: async () => {
     set({ isLoading: true });
@@ -76,7 +75,7 @@ export const useStore = create<StoreState>((set) => ({
           if (state.expedientes.some(e => e.id === newExp.id)) return state;
           return { expedientes: [newExp, ...state.expedientes] };
         });
-        return Promise.resolve();
+        return newExp;
       } else {
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData.error || `Error HTTP ${response.status}`);
