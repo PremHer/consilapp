@@ -15,7 +15,7 @@ export interface Expediente {
   invitadoDni: string;
   invitadoCelular?: string;
   invitadoDireccion?: string;
-  estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA' | 'CONCLUIDO';
+  estado: 'RECIBIDO' | 'CALIFICADO' | 'INVITACIONES' | 'AUDIENCIA' | 'CONCLUIDO' | 'DESCALIFICADO';
   urgency?: 'NORMAL' | 'URGENTE';
   fechaAudiencia?: string;
   enlaceSala?: string;

@@ -254,7 +254,18 @@ const DashboardModule = () => {
                       <span className="text-label-sm">{new Date(exp.fechaCreacion).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     <button 
-                      onClick={(e) => { e.stopPropagation(); updateExpedienteStatus(exp.id, 'CALIFICADO'); }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        const simulatedDocs = getSimulatedDocs(exp);
+                        const approvedCount = Object.values(docValidationState[exp.id] || {}).filter(Boolean).length;
+                        const allDocsValidated = approvedCount === simulatedDocs.length;
+                        if (allDocsValidated) {
+                          updateExpedienteStatus(exp.id, 'CALIFICADO'); 
+                        } else {
+                          alert(`Para calificar este expediente, primero debe validar todos sus documentos. (Validados: ${approvedCount} de ${simulatedDocs.length})\nAbriendo detalles del expediente...`);
+                          setSelectedExp(exp);
+                        }
+                      }}
                       className="px-sm py-xs bg-primary text-on-primary rounded text-label-sm font-bold hover:opacity-90 transition-opacity"
                     >
                       Calificar
@@ -706,6 +717,57 @@ const DashboardModule = () => {
                          return 'Acta Final y Concluir';
                       })()}
                     </button>
+                  ) : selectedExp.estado === 'RECIBIDO' ? (
+                    (() => {
+                      const simDocs = getSimulatedDocs(selectedExp);
+                      const appCount = Object.values(docValidationState[selectedExp.id] || {}).filter(Boolean).length;
+                      const allDocsOk = appCount === simDocs.length;
+                      return (
+                        <div className="flex gap-sm">
+                          <button 
+                            onClick={() => {
+                              if (allDocsOk) {
+                                setConfirmAction({
+                                  message: `¿Calificar el expediente ${selectedExp.numero || selectedExp.id.substring(0,8)} como Apto? Esta acción enviará el caso a la siguiente fase de Calificado.`,
+                                  onConfirm: () => {
+                                    updateExpedienteStatus(selectedExp.id, 'CALIFICADO');
+                                    setSelectedExp(null);
+                                    setConfirmAction(null);
+                                  }
+                                });
+                              }
+                            }}
+                            disabled={!allDocsOk}
+                            className={`px-md py-sm rounded-lg font-label-lg flex items-center gap-xs shadow-sm transition-all ${
+                              allDocsOk 
+                                ? 'bg-primary text-on-primary hover:bg-primary/90' 
+                                : 'bg-surface-container-high text-on-surface-variant/40 border border-outline-variant/30 cursor-not-allowed'
+                            }`}
+                            title={allDocsOk ? 'Calificar como expediente admitido' : 'Debe validar todos los documentos para calificar'}
+                          >
+                            <span className="material-symbols-outlined text-[20px]">thumb_up</span>
+                            Calificar Apto
+                          </button>
+
+                          <button 
+                            onClick={() => {
+                              setConfirmAction({
+                                message: `¿Está seguro de descalificar el expediente ${selectedExp.numero || selectedExp.id.substring(0,8)}? Esto rechazará la solicitud de forma permanente.`,
+                                onConfirm: () => {
+                                  updateExpedienteStatus(selectedExp.id, 'DESCALIFICADO');
+                                  setSelectedExp(null);
+                                  setConfirmAction(null);
+                                }
+                              });
+                            }}
+                            className="px-md py-sm bg-error/10 text-error hover:bg-error/20 border border-error/30 rounded-lg font-label-lg transition-colors flex items-center gap-xs shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">thumb_down</span>
+                            Descalificar
+                          </button>
+                        </div>
+                      );
+                    })()
                   ) : (
                     <button 
                       onClick={() => {
