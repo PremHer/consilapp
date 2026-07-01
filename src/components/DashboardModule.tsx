@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 
 import { useStore, type Expediente } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
+import { generateSolicitudPDF, generateActaFinalPDF } from '../utils/pdfGenerator';
 
 const DashboardModule = () => {
   const expedientes = useStore((state) => state.expedientes);
@@ -577,11 +578,10 @@ const DashboardModule = () => {
                     <button 
                       onClick={async () => {
                         try {
-                          const m = await import('../utils/pdfGenerator');
                           const sesion = selectedExp.sesionActual || 1;
                           const requiresNextSession = (resultadoAudiencia === 'INASISTENCIA_UNA_PARTE' && sesion === 1) || resultadoAudiencia === 'ACUERDO_PARCIAL';
                           
-                          m.generateActaFinalPDF(selectedExp, resultadoAudiencia, inasistente, sesion);
+                          generateActaFinalPDF(selectedExp, resultadoAudiencia, inasistente, sesion);
                           
                           if (requiresNextSession) {
                              await useStore.getState().avanzarSesion(selectedExp.id);
@@ -608,17 +608,12 @@ const DashboardModule = () => {
                   ) : (
                     <button 
                       onClick={() => {
-                        import('../utils/pdfGenerator').then(module => {
-                          try {
-                            module.generateSolicitudPDF(selectedExp);
-                          } catch (err) {
-                            console.error("Error al generar PDF de Solicitud:", err);
-                            alert("No se pudo generar el PDF de la Solicitud.");
-                          }
-                        }).catch(err => {
-                          console.error("Error al importar pdfGenerator:", err);
-                          alert("Error al cargar el módulo de generación de PDF.");
-                        });
+                        try {
+                          generateSolicitudPDF(selectedExp);
+                        } catch (err) {
+                          console.error("Error al generar PDF de Solicitud:", err);
+                          alert("No se pudo generar el PDF de la Solicitud.");
+                        }
                       }}
                       className="px-md py-sm bg-surface-container-lowest text-primary border border-primary hover:bg-primary/5 rounded-lg font-label-lg transition-colors flex items-center gap-xs shadow-sm"
                     >
