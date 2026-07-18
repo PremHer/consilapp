@@ -26,25 +26,33 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_bridgelaw_2024';
 
 // Seeding: Crear usuario admin si no existe
 async function seedAdmin() {
-  const adminExists = await prisma.usuario.findUnique({
-    where: { email: 'admin@bridgelaw.com' }
-  });
-
-  if (!adminExists) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    await prisma.usuario.create({
-      data: {
-        email: 'admin@bridgelaw.com',
-        password: hashedPassword,
-        nombre: 'Dra. Yocely Tapia',
-        rol: 'ADMIN'
-      }
+  if (!process.env.DATABASE_URL) {
+    console.warn('⚠️ DATABASE_URL no configurada en las variables de entorno de Railway. Omitiendo verificación/creación del usuario admin.');
+    return;
+  }
+  try {
+    const adminExists = await prisma.usuario.findUnique({
+      where: { email: 'admin@bridgelaw.com' }
     });
-    console.log('Usuario administrador creado con éxito.');
+
+    if (!adminExists) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      await prisma.usuario.create({
+        data: {
+          email: 'admin@bridgelaw.com',
+          password: hashedPassword,
+          nombre: 'Dra. Yocely Tapia',
+          rol: 'ADMIN'
+        }
+      });
+      console.log('Usuario administrador creado con éxito.');
+    }
+  } catch (err) {
+    console.warn('⚠️ No se pudo conectar a PostgreSQL para verificar usuario admin:', err);
   }
 }
 
-seedAdmin().catch(console.error);
+seedAdmin();
 
 // Endpoint de Login
 app.post('/api/auth/login', async (req, res) => {
@@ -387,5 +395,9 @@ app.use((req, res, next) => {
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Servidor de Conciliación corriendo en el puerto ${PORT}`);
-  connectToWhatsApp(); // Iniciar bot
+  if (process.env.DATABASE_URL) {
+    connectToWhatsApp(); // Iniciar bot solo si hay BD
+  } else {
+    console.warn('⚠️ DATABASE_URL no configurada en Railway. Omitiendo conexión del bot de WhatsApp a la base de datos para prevenir crash.');
+  }
 });

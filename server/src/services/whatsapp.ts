@@ -9,23 +9,28 @@ let sock: ReturnType<typeof makeWASocket> | null = null;
 let isConnected = false;
 
 const writeData = async (data: any, id: string) => {
+  if (!process.env.DATABASE_URL) return;
   const str = JSON.stringify(data, BufferJSON.replacer);
   await prisma.whatsAppSession.upsert({
     where: { id },
     update: { data: str },
     create: { id, data: str },
-  });
+  }).catch(() => {});
 };
 
 const readData = async (id: string) => {
-  const item = await prisma.whatsAppSession.findUnique({ where: { id } });
-  if (item) {
-    return JSON.parse(item.data, BufferJSON.reviver);
-  }
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const item = await prisma.whatsAppSession.findUnique({ where: { id } });
+    if (item) {
+      return JSON.parse(item.data, BufferJSON.reviver);
+    }
+  } catch (e) {}
   return null;
 };
 
 const removeData = async (id: string) => {
+  if (!process.env.DATABASE_URL) return;
   await prisma.whatsAppSession.delete({ where: { id } }).catch(() => {});
 };
 
@@ -71,6 +76,10 @@ async function usePostgresAuthState(): Promise<{ state: AuthenticationState, sav
 }
 
 export async function connectToWhatsApp() {
+  if (!process.env.DATABASE_URL) {
+    console.warn('⚠️ DATABASE_URL no configurada en variables de entorno. Omitiendo inicio del Bot de WhatsApp.');
+    return;
+  }
   const { state, saveCreds } = await usePostgresAuthState();
   const { version } = await fetchLatestBaileysVersion();
   
