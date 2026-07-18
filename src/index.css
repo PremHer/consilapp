@@ -4,16 +4,16 @@
 
 @layer base {
   :root {
-    --color-surface: #f4f6f8;
-    --color-surface-container: #eaeef2;
-    --color-surface-container-low: #f0f2f5;
+    --color-surface: #f8fafc;
+    --color-surface-container: #f1f5f9;
+    --color-surface-container-low: #f8fafc;
     --color-surface-container-lowest: #ffffff;
-    --color-surface-container-high: #dfe2e6;
-    --color-surface-container-highest: #dfe2e6;
-    --color-on-surface: #12181d;
-    --color-on-surface-variant: #3e454a;
-    --color-outline-variant: #bfcbd4;
-    --color-outline: #6e777e;
+    --color-surface-container-high: #e2e8f0;
+    --color-surface-container-highest: #cbd5e1;
+    --color-on-surface: #0f172a;
+    --color-on-surface-variant: #334155;
+    --color-outline-variant: #cbd5e1;
+    --color-outline: #64748b;
     --color-primary: #0a3d62;
     --color-on-primary: #ffffff;
     --color-primary-container: #e2edf5;
@@ -24,9 +24,9 @@
     --color-on-error: #ffffff;
     --color-error-container: #ffdad6;
     --color-on-error-container: #93000a;
-    --scrollbar-track: #eaeef2;
-    --scrollbar-thumb: #bfcbd4;
-    --scrollbar-thumb-hover: #6e777e;
+    --scrollbar-track: #f1f5f9;
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-thumb-hover: #94a3b8;
   }
 
   html.dark-theme {

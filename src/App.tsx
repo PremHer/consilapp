@@ -92,9 +92,9 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
   const [showProfile, setShowProfile] = React.useState(false);
   const [showSecurity, setShowSecurity] = React.useState(false);
   const [isDark, setIsDark] = React.useState(() => {
-    const saved = localStorage.getItem('theme_dark');
+    const saved = localStorage.getItem('bridgelaw_theme_dark');
     if (saved !== null) return saved === 'true';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return false; // Por defecto SIEMPRE carga con el fondo claro (institucional y limpio)
   });
   const user = useAuthStore(state => state.user);
   const searchQuery = useStore(state => state.searchQuery);
@@ -109,7 +109,7 @@ const Topbar = ({ setIsOpen, isPublic = false }: { setIsOpen?: (val: boolean) =>
     } else {
       document.documentElement.classList.remove('dark-theme');
     }
-    localStorage.setItem('theme_dark', String(isDark));
+    localStorage.setItem('bridgelaw_theme_dark', String(isDark));
   }, [isDark]);
 
   const toggleDarkMode = () => {
