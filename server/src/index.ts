@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import { connectToWhatsApp, sendWhatsAppMessage } from './services/whatsapp';
@@ -371,6 +372,17 @@ app.get('/api/clear-session', async (req, res) => {
   }
 });
 
+// Servir archivos estáticos del frontend (dist compilado por Vite en la raíz del proyecto)
+const distPath = path.join(__dirname, '../../dist');
+app.use(express.static(distPath));
+
+// SPA fallback solo para rutas de la interfaz web (excluye /api y /socket.io para no enmascarar errores 404 de la API)
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
+    return next();
+  }
+  res.sendFile(path.join(distPath, 'index.html'));
+});
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
