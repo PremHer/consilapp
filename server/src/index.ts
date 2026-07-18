@@ -54,9 +54,74 @@ async function seedAdmin() {
 
 seedAdmin();
 
+// Almacenamiento en memoria fallback cuando no hay PostgreSQL configurado en Railway
+let inMemoryExpedientes: any[] = [
+  {
+    id: 'demo-1',
+    numero: '#2026-001',
+    materia: 'ALIMENTOS',
+    solicitanteNom: 'María López Pérez',
+    solicitanteDni: '45892314',
+    solicitanteEmail: 'maria.lopez@email.com',
+    solicitanteCelular: '987654321',
+    invitadoNom: 'Carlos Rodríguez Gómez',
+    invitadoDni: '41235689',
+    invitadoCelular: '912345678',
+    invitadoDireccion: 'Av. Brasil 1234, Moyobamba',
+    detalles: 'Solicito pensión alimenticia para nuestro menor hijo de 5 años. El padre no cumple desde hace 6 meses.',
+    estado: 'RECIBIDO',
+    urgency: 'ALTA',
+    sesionActual: 1,
+    fechaCreacion: new Date('2026-07-15T10:00:00Z'),
+    fechaAudiencia: null,
+    enlaceSala: null
+  },
+  {
+    id: 'demo-2',
+    numero: '#2026-002',
+    materia: 'DESALOJO',
+    solicitanteNom: 'Roberto Fernández Salazar',
+    solicitanteDni: '08547123',
+    solicitanteEmail: 'roberto.fs@email.com',
+    solicitanteCelular: '955443322',
+    invitadoNom: 'Empresa Comercial Intex S.A.C.',
+    invitadoDni: '20548796321',
+    invitadoCelular: '944332211',
+    invitadoDireccion: 'Jr. San Martín 456, Moyobamba',
+    detalles: 'Conciliación por vencimiento de contrato de arrendamiento y adeudo de 3 meses de alquiler del local comercial.',
+    estado: 'INVITACIONES',
+    urgency: 'NORMAL',
+    sesionActual: 1,
+    fechaCreacion: new Date('2026-07-16T14:30:00Z'),
+    fechaAudiencia: null,
+    enlaceSala: null
+  }
+];
+
 // Endpoint de Login
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
+
+  if (!process.env.DATABASE_URL) {
+    // Modo Fallback en memoria si no hay base de datos
+    if (email === 'admin@bridgelaw.com' && password === 'admin123') {
+      const token = jwt.sign(
+        { id: 'admin-memory', email: 'admin@bridgelaw.com', rol: 'ADMIN' },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      return res.json({
+        token,
+        user: {
+          id: 'admin-memory',
+          email: 'admin@bridgelaw.com',
+          nombre: 'Dra. Yocely Tapia (Modo Memoria)',
+          rol: 'ADMIN'
+        }
+      });
+    }
+    return res.status(401).json({ error: 'Credenciales inválidas. Usa admin@bridgelaw.com / admin123 en modo demo.' });
+  }
 
   try {
     const usuario = await prisma.usuario.findUnique({ where: { email } });
@@ -92,6 +157,9 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Obtener todos los expedientes
 app.get('/api/expedientes', async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.json(inMemoryExpedientes);
+  }
   try {
     const expedientes = await prisma.expediente.findMany({
       orderBy: { fechaCreacion: 'desc' }
@@ -105,9 +173,13 @@ app.get('/api/expedientes', async (req, res) => {
 
 // Obtener un solo expediente por número para la vista pública
 app.get('/api/expedientes/buscar/:numero', async (req, res) => {
+  const numero = `#${req.params.numero}`;
+  if (!process.env.DATABASE_URL) {
+    const exp = inMemoryExpedientes.find(e => e.numero === numero);
+    if (!exp) return res.status(404).json({ error: 'Expediente no encontrado en memoria' });
+    return res.json(exp);
+  }
   try {
-    // El frontend nos enviará el número sin el # (ej. 2024-028)
-    const numero = `#${req.params.numero}`;
     const expediente = await prisma.expediente.findFirst({
       where: { numero }
     });
@@ -128,8 +200,35 @@ app.post('/api/expedientes', async (req, res) => {
   try {
     const { materia, solicitanteNom, solicitanteDni, invitadoNom, invitadoDni, invitadoCelular, detalles, solicitanteEmail, solicitanteCelular, invitadoDireccion } = req.body;
     
-    // Generar un número de expediente tipo #2026-XXX
     const currentYear = new Date().getFullYear();
+
+    if (!process.env.DATABASE_URL) {
+      const numero = `#${currentYear}-${(inMemoryExpedientes.length + 1).toString().padStart(3, '0')}`;
+      const nuevoExp = {
+        id: Date.now().toString(),
+        numero,
+        materia,
+        solicitanteNom,
+        solicitanteDni,
+        invitadoNom,
+        invitadoDni,
+        invitadoCelular,
+        detalles,
+        solicitanteEmail,
+        solicitanteCelular,
+        invitadoDireccion,
+        estado: 'RECIBIDO',
+        urgency: 'NORMAL',
+        sesionActual: 1,
+        fechaCreacion: new Date(),
+        fechaAudiencia: null,
+        enlaceSala: null
+      };
+      inMemoryExpedientes.unshift(nuevoExp);
+      io.emit('expediente_creado', nuevoExp);
+      return res.status(201).json(nuevoExp);
+    }
+
     const count = await prisma.expediente.count({
       where: { numero: { startsWith: `#${currentYear}-` } }
     });
@@ -169,6 +268,14 @@ app.put('/api/expedientes/:id/estado', async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body;
     
+    if (!process.env.DATABASE_URL) {
+      const idx = inMemoryExpedientes.findIndex(e => e.id === id);
+      if (idx === -1) return res.status(404).json({ error: 'Expediente no encontrado en memoria' });
+      inMemoryExpedientes[idx].estado = estado;
+      io.emit('expediente_actualizado', inMemoryExpedientes[idx]);
+      return res.json(inMemoryExpedientes[idx]);
+    }
+
     const expediente = await prisma.expediente.update({
       where: { id },
       data: { estado }
@@ -199,6 +306,17 @@ app.put('/api/expedientes/:id/audiencia', async (req, res) => {
     const { id } = req.params;
     const { fechaAudiencia } = req.body;
     
+    if (!process.env.DATABASE_URL) {
+      const idx = inMemoryExpedientes.findIndex(e => e.id === id);
+      if (idx === -1) return res.status(404).json({ error: 'Expediente no encontrado en memoria' });
+      const enlaceSala = `https://meet.jit.si/Bridgelaw-${inMemoryExpedientes[idx].numero.replace('#', '')}-${Date.now().toString().slice(-4)}`;
+      inMemoryExpedientes[idx].fechaAudiencia = new Date(fechaAudiencia);
+      inMemoryExpedientes[idx].enlaceSala = enlaceSala;
+      inMemoryExpedientes[idx].estado = 'AUDIENCIA';
+      io.emit('expediente_actualizado', inMemoryExpedientes[idx]);
+      return res.json(inMemoryExpedientes[idx]);
+    }
+
     // Obtener el expediente para generar un link único
     const expExistente = await prisma.expediente.findUnique({ where: { id } });
     if (!expExistente) return res.status(404).json({ error: 'Expediente no encontrado' });
@@ -243,6 +361,17 @@ app.put('/api/expedientes/:id/avanzarsesion', async (req, res) => {
   try {
     const { id } = req.params;
     
+    if (!process.env.DATABASE_URL) {
+      const idx = inMemoryExpedientes.findIndex(e => e.id === id);
+      if (idx === -1) return res.status(404).json({ error: 'Expediente no encontrado en memoria' });
+      inMemoryExpedientes[idx].sesionActual = (inMemoryExpedientes[idx].sesionActual || 1) + 1;
+      inMemoryExpedientes[idx].estado = 'INVITACIONES';
+      inMemoryExpedientes[idx].fechaAudiencia = null;
+      inMemoryExpedientes[idx].enlaceSala = null;
+      io.emit('expediente_actualizado', inMemoryExpedientes[idx]);
+      return res.json(inMemoryExpedientes[idx]);
+    }
+
     const expExistente = await prisma.expediente.findUnique({ where: { id } });
     if (!expExistente) return res.status(404).json({ error: 'Expediente no encontrado' });
 
