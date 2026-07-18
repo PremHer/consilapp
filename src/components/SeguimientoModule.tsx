@@ -17,7 +17,7 @@ const SeguimientoModule = () => {
       try {
         setIsLoading(true);
         setError('');
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : 'https://consilapp-production.up.railway.app/api');
         const res = await fetch(`${API_URL}/expedientes/buscar/${numero}`);
         
         if (!res.ok) throw new Error('Expediente no encontrado');

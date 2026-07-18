@@ -38,7 +38,7 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
     setIsConciliable(null);
     
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : 'https://consilapp-production.up.railway.app/api');
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,7 +62,7 @@ const TriajeWidget = ({ isOpen, onClose }: TriajeWidgetProps) => {
       setStep('ai_response');
     } catch (err: any) {
       console.error(err);
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : 'https://consilapp-production.up.railway.app/api');
       setAiResponse(`❌ Error de conexión con la IA.\nURL: ${API_URL}/chat\nError: ${err.message}`);
       setHasAiError(true);
       setStep('ai_response');

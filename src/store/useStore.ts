@@ -37,7 +37,8 @@ interface StoreState {
   setFilterCategoria: (cat: string) => void;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Usar la URL de producción si existe, sino localhost
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : 'https://consilapp-production.up.railway.app/api');
 
 export const useStore = create<StoreState>((set) => ({
   expedientes: [],

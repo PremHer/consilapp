@@ -14,7 +14,7 @@ const LoginModule = () => {
   const location = useLocation();
   const login = useAuthStore(state => state.login);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : 'https://consilapp-production.up.railway.app/api');
 
   // Ruta a la que intentaba ir antes de ser redirigido
   const from = location.state?.from?.pathname || '/dashboard';

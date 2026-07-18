@@ -40,7 +40,7 @@ const AdmisibilidadModule = () => {
     if (dniSolicitante.length === 8) {
       const fetchDni = async () => {
         try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+          const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : 'https://consilapp-production.up.railway.app/api');
           const res = await fetch(`${API_URL}/reniec/dni/${dniSolicitante}`);
           if (res.ok) {
             const data = await res.json();
@@ -61,7 +61,7 @@ const AdmisibilidadModule = () => {
     if (dniContraparte.length === 8) {
       const fetchDni = async () => {
         try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+          const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : 'https://consilapp-production.up.railway.app/api');
           const res = await fetch(`${API_URL}/reniec/dni/${dniContraparte}`);
           if (res.ok) {
             const data = await res.json();
@@ -77,7 +77,7 @@ const AdmisibilidadModule = () => {
     } else if (dniContraparte.length === 11) {
       const fetchRuc = async () => {
         try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+          const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000/api' : 'https://consilapp-production.up.railway.app/api');
           const res = await fetch(`${API_URL}/reniec/ruc/${dniContraparte}`);
           if (res.ok) {
             const data = await res.json();
