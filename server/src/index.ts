@@ -527,6 +527,12 @@ app.get('/api/reniec/ruc/:numero', async (req, res) => {
   }
 });
 
+// Endpoint para consultar estado y código QR de WhatsApp
+app.get('/api/whatsapp/status', (req, res) => {
+  const { getWhatsAppStatus } = require('./services/whatsapp');
+  res.json(getWhatsAppStatus());
+});
+
 // Endpoint de emergencia para limpiar sesión corrupta de WhatsApp
 app.get('/api/clear-session', async (req, res) => {
   try {

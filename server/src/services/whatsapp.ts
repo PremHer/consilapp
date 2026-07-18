@@ -7,6 +7,15 @@ import { prisma } from '../index';
 // Variables globales para la conexión del socket
 let sock: ReturnType<typeof makeWASocket> | null = null;
 let isConnected = false;
+export let latestQrUrl: string | null = null;
+
+export function getWhatsAppStatus() {
+  return {
+    isConnected,
+    qrUrl: latestQrUrl,
+    hasDatabase: !!process.env.DATABASE_URL
+  };
+}
 
 const writeData = async (data: any, id: string) => {
   if (!process.env.DATABASE_URL) return;
@@ -96,9 +105,9 @@ export async function connectToWhatsApp() {
     
     if (qr) {
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qr)}`;
+      latestQrUrl = qrUrl;
       console.log('🤖 Escanea este código QR con tu WhatsApp para vincular el bot de conciliación:');
       console.log('🔗 HAZ CLIC AQUÍ PARA VER EL QR: ' + qrUrl);
-      // Opcional: seguir imprimiendo el de terminal por si acaso
       qrcode.generate(qr, { small: true });
     }
 
@@ -111,6 +120,7 @@ export async function connectToWhatsApp() {
       console.error('⚠️ Conexión de WhatsApp cerrada. Código:', statusCode);
 
       if (isLoggedOut) {
+        latestQrUrl = null;
         console.log('🧹 La sesión fue desvinculada o expiró (401). Limpiando credenciales antiguas...');
         prisma.whatsAppSession.deleteMany().then(() => {
           console.log('🔄 Credenciales eliminadas. Iniciando nueva vinculación para generar código QR...');
@@ -120,7 +130,6 @@ export async function connectToWhatsApp() {
           setTimeout(connectToWhatsApp, 5000);
         });
       } else {
-        // Para otros errores (p.ej. código 500, problemas de red, reinicios de socket), reintentar
         const delay = statusCode === DisconnectReason.restartRequired ? 1000 : 5000;
         console.log(`🔄 Reintentando conectar en ${delay/1000} segundos...`);
         setTimeout(connectToWhatsApp, delay);
@@ -128,6 +137,7 @@ export async function connectToWhatsApp() {
     } else if (connection === 'open') {
       console.log('✅ Bot de WhatsApp conectado y listo para enviar invitaciones.');
       isConnected = true;
+      latestQrUrl = null;
     }
   });
 
