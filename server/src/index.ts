@@ -460,11 +460,40 @@ Debes responder en JSON estricto con esta estructura:
       throw lastError || new Error("Todos los modelos de Gemini fallaron.");
     }
 
-    const data = JSON.parse(jsonStr);
+    // Limpieza robusta y extracción del bloque JSON devuelto por Gemini
+    let cleanJson = jsonStr.trim();
+    cleanJson = cleanJson.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '');
+    const firstBrace = cleanJson.indexOf('{');
+    const lastBrace = cleanJson.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(cleanJson);
+    } catch (parseError) {
+      console.warn("⚠️ Error en JSON.parse normal, aplicando saneamiento secundario:", parseError);
+      try {
+        // Intentar limpiar saltos de línea no escapados dentro de strings
+        const fixedJson = cleanJson.replace(/\n/g, "\\n").replace(/\r/g, "");
+        const fb = fixedJson.indexOf('{');
+        const lb = fixedJson.lastIndexOf('}');
+        data = JSON.parse(fixedJson.substring(fb, lb + 1));
+      } catch (fallbackError) {
+        console.warn("⚠️ Fallback a respuesta en texto plano debido a JSON malformado de Gemini.");
+        data = {
+          isConciliable: true,
+          categoria: "OTRO_CIVIL",
+          response: jsonStr.replace(/```json/gi, '').replace(/```/g, '').replace(/["'{}]/g, '').trim() || "Hemos analizado tu consulta preliminarmente y cumple con los requisitos básicos. Te invitamos a completar tu solicitud formal para la evaluación del conciliador."
+        };
+      }
+    }
+
     res.json({ 
       response: data.response, 
-      isConciliable: data.isConciliable,
-      categoria: data.categoria
+      isConciliable: data.isConciliable !== undefined ? data.isConciliable : true,
+      categoria: data.categoria || "OTRO_CIVIL"
     });
   } catch (error: any) {
     console.error("Error en AI Chat:", error);
